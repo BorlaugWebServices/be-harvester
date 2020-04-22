@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "baseUrl": ".",
+        "paths": {
+            "~/*": ["src/*"]
+        },
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "target": "es6",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "typeRoots": ["./node_modules/@types", "./src/typings"],
+        "plugins": [
+            { "transform": "transformer-module" }
+        ]
+    },
+    "lib": ["es2015"],
+    "exclude": ["dist", "node_modules", "test.ts"]
+}
