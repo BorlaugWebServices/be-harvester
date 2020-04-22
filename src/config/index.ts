@@ -1,8 +1,10 @@
 const dotenv = require('dotenv');
+const DataStore = require('be-datastore')
 
 let path = `${__dirname}/../../.env`;
 
 dotenv.config({path: path});
+
 
 export const ADDAX_ADDRESS = process.env.ADDAX_ADDRESS;
 export const RPC_PORT = process.env.RPC_PORT;
@@ -11,4 +13,6 @@ export const REDIS_PORTS = process.env.REDIS_PORTS.split(',');
 export const TTL = process.env.CACHE_EXPIRY || 7776000;
 export const DB_TYPE = process.env.DB_CONNECTION_TYPE;
 export const DB_URL = process.env.DB_CONNECTION_URL;
+export const Store = DataStore;
+
 

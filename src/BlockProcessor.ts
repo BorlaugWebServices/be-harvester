@@ -1,6 +1,6 @@
 const debug = require("debug")("watcher:BlockProcessor");
 
-import {ADDAX_ADDRESS,TTL} from "./config";
+import {ADDAX_ADDRESS, TTL, Store, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS} from "./config";
 import {types} from "./primitives";
 import AssetRegistry from "./AssetRegistry";
 import {WsProvider} from '@polkadot/rpc-provider';
@@ -10,6 +10,7 @@ const {ApiPromise} = require('@polkadot/api');
 
 export default class BlockProcessor {
     private api;
+    private store;
     private latestBlockNumber = 0;
     private assetRegistry = new AssetRegistry();
 
@@ -19,6 +20,7 @@ export default class BlockProcessor {
                 provider: new WsProvider(ADDAX_ADDRESS),
                 types: types
             });
+            this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
         }
     }
 
@@ -142,7 +144,7 @@ export default class BlockProcessor {
                 timestamp: timestamp
             };
 
-            calls.push(knex("block").insert({
+            calls.push(this.store.block.save({
                 number: blockNumber,
                 hash: blockHash,
                 parentHash: _block.block.header.parentHash.toString(),
