@@ -7,15 +7,14 @@ import BlockProcessor from "./BlockProcessor";
 import {server} from "./rpc";
 import {RPC_PORT} from "./config";
 
-console.log("Starting watcher");
+console.log("Starting harvester");
 server.http().listen(RPC_PORT);
 
 async function main() {
     const blockProcessor = new BlockProcessor();
-    //await blockProcessor.subscribeNewHeads();
-    await blockProcessor.getBlock(20928);
+    await blockProcessor.subscribeNewHeads();
 }
 
-console.log("watcher started");
+console.log("Harvester started");
 
 main().catch(console.error);

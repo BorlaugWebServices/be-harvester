@@ -2,6 +2,7 @@ const debug = require("debug")("watcher:rpc");
 const jayson = require('jayson');
 import BlockProcessor from "./BlockProcessor";
 import {del, _keys} from "./db";
+import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
 
 const blockProcessor = new BlockProcessor();
 
@@ -18,13 +19,6 @@ export const server = jayson.server({
     },
     cleanup: async function ({blockNumber}, callback) {
         try {
-            await del(`lease.keys`);
-            await del(`transaction.keys`);
-            await del(`inherent.keys`);
-            await del(`event.keys`);
-            await del(`log.keys`);
-            await del(`block.keys`);
-
             let keys = await _keys("lease:[0-9]");
             console.log('Leases to be deleted', keys);
             let count = await del(keys);
@@ -64,6 +58,17 @@ export const server = jayson.server({
             console.log('Blocks to be deleted', keys);
             count = await del(keys);
             console.log('%d Blocks deleted', count);
+
+            if(!this.store){
+                this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
+            }
+
+            await this.store.db("lease").delete();
+            await this.store.db("log").delete();
+            await this.store.db("event").delete();
+            await this.store.db("inherent").delete();
+            await this.store.db("transaction").delete();
+            await this.store.db("block").delete();
 
             callback(null, count);
         } catch (e) {

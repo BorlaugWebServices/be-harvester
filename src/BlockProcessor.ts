@@ -40,7 +40,6 @@ export default class BlockProcessor {
             let blockHash = await this.api.rpc.chain.getBlockHash(blockNumber);
             if (blockNumber > this.latestBlockNumber) {
                 this.latestBlockNumber = blockNumber;
-                await set("latestBlockNumber", this.latestBlockNumber);
             }
             blockHash = this.toJson(blockHash);
             //console.log('Block Hash of block %d is %o ;', blockNumber, blockHash);
@@ -63,7 +62,6 @@ export default class BlockProcessor {
                 for (let i = 0; i < events.length; i++) {
                     const {event, phase} = events[i];
                     const id = `${blockNumber}-${i}`;
-                    const key = `evn:${id}`;
                     let _event = {
                         id: id,
                         phase: phase,
@@ -80,7 +78,7 @@ export default class BlockProcessor {
                         }
                         map[`${blockNumber}-${phase.asApplyExtrinsic}`].push(id);
                     }
-                    _events.push(key);
+                    _events.push(id);
                     calls.push(this.store.event.save(_event));
                 }
             } catch (e) {
@@ -107,7 +105,6 @@ export default class BlockProcessor {
                     }
                 } else {
                     const id = `${blockNumber}-${i}`;
-                    const key = `inh:${id}`;
                     let inherent = ex.toHuman({isExtended: true});
                     if (inherent.method.section === 'timestamp') {
                         timestamp = inherent.method.args[0].replace(/,/g, '');
@@ -117,7 +114,7 @@ export default class BlockProcessor {
                     inherent["id"] = id;
                     inherent["events"] = map[`${blockNumber}-${i}`];
                     inherent["blockNumber"] = blockNumber;
-                    _inherents.push(key);
+                    _inherents.push(id);
                     calls.push(this.store.inherent.save(inherent));
                 }
             }
@@ -125,14 +122,12 @@ export default class BlockProcessor {
             //Save logs separately
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
                 const id = `${blockNumber}-${i}`;
-                const key = `log:${id}`;
                 let log = {};
                 log["log"] = _block.block.header.digest.logs[i].toHuman({isExtended: true});
                 log["id"] = id;
                 log["index"] = 0;
                 log["blockNumber"] = blockNumber;
-                console.log(log);
-                _logs.push(key);
+                _logs.push(id);
                 calls.push(this.store.log.save(log));
             }
 
@@ -155,7 +150,7 @@ export default class BlockProcessor {
             try {
                 calls.push(publish('blockUpdated', JSON.stringify(block)));
                 await Promise.all(calls);
-                await Promise.all(assetRegistryCalls);
+                //await Promise.all(assetRegistryCalls);
                 console.log('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {
