@@ -3,6 +3,12 @@ import _ from "lodash";
 
 export default class AssetRegistry {
 
+    private store;
+
+    constructor(store) {
+        this.store = store;
+    }
+
     /**
      * checks transaction with `assetRegistry` module and creates/updates a lease object
      */

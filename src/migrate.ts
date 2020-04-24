@@ -1,12 +1,12 @@
-import {up} from "./db/schema";
+import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
 
-up()
-.then(success => {
+Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL)
+.then(async (store) => {
+    await store.migration.up();
     console.log("Migration Success");
+    process.exit();
 })
 .catch(error => {
-    console.error("Migration Failure! ", error);
-})
-.finally(() =>{
-    process.exit(0);
+    console.error("Migration Failed", error);
+    process.exit();
 });

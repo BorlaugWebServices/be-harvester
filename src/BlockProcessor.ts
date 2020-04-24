@@ -12,7 +12,7 @@ export default class BlockProcessor {
     private api;
     private store;
     private latestBlockNumber = 0;
-    private assetRegistry = new AssetRegistry();
+    private assetRegistry;
 
     async init() {
         if (!this.api) {
@@ -21,6 +21,7 @@ export default class BlockProcessor {
                 types: types
             });
             this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
+            this.assetRegistry = new AssetRegistry(this.store);
         }
     }
 
@@ -69,6 +70,7 @@ export default class BlockProcessor {
                         meta: event.meta,
                         event: event,
                         index: i,
+                        blockNumber: blockNumber,
                         extrinsicid: phase.isApplyExtrinsic ? `${blockNumber}-${phase.asApplyExtrinsic}` : null
                     };
 
@@ -79,7 +81,7 @@ export default class BlockProcessor {
                         map[`${blockNumber}-${phase.asApplyExtrinsic}`].push(id);
                     }
                     _events.push(key);
-                    calls.push(set(key, JSON.stringify(_event), 'EX', TTL));
+                    calls.push(this.store.event.save(_event));
                 }
             } catch (e) {
                 console.log("Can't get events of %d, Error : %O ;", blockNumber, e);
@@ -96,8 +98,10 @@ export default class BlockProcessor {
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
                     transaction["events"] = map[`${blockNumber}-${i}`];
+                    transaction["blockNumber"]=blockNumber;
                     _transactions.push(hash);
-                    calls.push(set(hash, JSON.stringify(transaction), 'EX',TTL));
+                    calls.push(this.store.transaction.save(transaction));
+
                     if(transaction.method.section === 'assetRegistry'){
                         await assetRegistryCalls.push(this.assetRegistry.process(transaction,blockNumber,blockHash));
                     }
@@ -112,8 +116,9 @@ export default class BlockProcessor {
                     inherent["index"] = i;
                     inherent["id"] = id;
                     inherent["events"] = map[`${blockNumber}-${i}`];
+                    inherent["blockNumber"] = blockNumber;
                     _inherents.push(key);
-                    calls.push(set(key, JSON.stringify(inherent), 'EX', TTL));
+                    calls.push(this.store.inherent.save(inherent));
                 }
             }
 
@@ -121,41 +126,33 @@ export default class BlockProcessor {
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
                 const id = `${blockNumber}-${i}`;
                 const key = `log:${id}`;
-                let log = _block.block.header.digest.logs[i].toHuman({isExtended: true});
+                let log = {};
+                log["log"] = _block.block.header.digest.logs[i].toHuman({isExtended: true});
                 log["id"] = id;
+                log["index"] = 0;
+                log["blockNumber"] = blockNumber;
+                console.log(log);
                 _logs.push(key);
-                calls.push(set(key, JSON.stringify(log), 'EX', TTL));
+                calls.push(this.store.log.save(log));
             }
 
-            let blockKey = `block:${blockNumber}`;
             let block = {
-                header: {
-                    parentHash: _block.block.header.parentHash,
-                   number: _block.block.header.number,
-                    stateRoot: _block.block.header.stateRoot,
-                    extrinsicsRoot: _block.block.header.extrinsicsRoot,
-               },
-                transactions: _transactions,
-                inherents: _inherents,
-                events: _events,
-                logs: _logs,
-                hash: blockHash,
-                number: blockNumber,
-                timestamp: timestamp
-            };
-
-            calls.push(this.store.block.save({
                 number: blockNumber,
                 hash: blockHash,
                 parentHash: _block.block.header.parentHash.toString(),
                 stateRoot: _block.block.header.stateRoot.toString(),
                 extrinsicsRoot: _block.block.header.extrinsicsRoot.toString(),
-                timestamp: timestamp
-            }));
+                timestamp: timestamp,
+                transactions: _transactions,
+                inherents: _inherents,
+                events: _events,
+                logs: _logs,
+            };
+
+            calls.push(this.store.block.save(block));
             //console.log('Block %d ===> %j', blockNumber, block);
 
             try {
-                calls.push(set(blockKey, JSON.stringify(block), 'EX', TTL));
                 calls.push(publish('blockUpdated', JSON.stringify(block)));
                 await Promise.all(calls);
                 await Promise.all(assetRegistryCalls);

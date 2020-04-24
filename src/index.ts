@@ -12,7 +12,8 @@ server.http().listen(RPC_PORT);
 
 async function main() {
     const blockProcessor = new BlockProcessor();
-    await blockProcessor.subscribeNewHeads();
+    //await blockProcessor.subscribeNewHeads();
+    await blockProcessor.getBlock(20928);
 }
 
 console.log("watcher started");
