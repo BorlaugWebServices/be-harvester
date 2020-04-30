@@ -51,9 +51,9 @@ export default class BlockProcessor {
             let _events = [];
             let _logs = [];
             let calls = [];
-            let assetRegistryCalls = [];
             let map = {};
 
+            let txObjs = [], inhObjs = [], evnObjs = [], logObjs =[], leaseObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -79,7 +79,7 @@ export default class BlockProcessor {
                         map[`${blockNumber}-${phase.asApplyExtrinsic}`].push(id);
                     }
                     _events.push(id);
-                    calls.push(this.store.event.save(_event));
+                    evnObjs.push(_event);
                 }
             } catch (e) {
                 console.log("Can't get events of %d, Error : %O ;", blockNumber, e);
@@ -98,10 +98,10 @@ export default class BlockProcessor {
                     transaction["events"] = map[`${blockNumber}-${i}`];
                     transaction["blockNumber"]=blockNumber;
                     _transactions.push(hash);
-                    calls.push(this.store.transaction.save(transaction));
+                    txObjs.push(transaction);
 
                     if(transaction.method.section === 'assetRegistry'){
-                        await assetRegistryCalls.push(this.assetRegistry.process(transaction,blockNumber,blockHash));
+                        leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber,blockHash));
                     }
                 } else {
                     const id = `${blockNumber}-${i}`;
@@ -115,7 +115,7 @@ export default class BlockProcessor {
                     inherent["events"] = map[`${blockNumber}-${i}`];
                     inherent["blockNumber"] = blockNumber;
                     _inherents.push(id);
-                    calls.push(this.store.inherent.save(inherent));
+                    inhObjs.push(inherent);
                 }
             }
 
@@ -128,7 +128,7 @@ export default class BlockProcessor {
                 log["index"] = 0;
                 log["blockNumber"] = blockNumber;
                 _logs.push(id);
-                calls.push(this.store.log.save(log));
+                logObjs.push(log);
             }
 
             let block = {
@@ -144,13 +144,36 @@ export default class BlockProcessor {
                 logs: _logs,
             };
 
+            evnObjs.forEach(evn=>{
+                evn.timestamp = timestamp;
+                calls.push(this.store.event.save(evn));
+            });
+
+            txObjs.forEach(tx=>{
+                tx.timestamp = timestamp;
+                calls.push(this.store.transaction.save(tx));
+            });
+
+            inhObjs.forEach(inh=>{
+                inh.timestamp = timestamp;
+                calls.push(this.store.inherent.save(inh));
+            });
+
+            logObjs.forEach(log=>{
+                log.timestamp = timestamp;
+                calls.push(this.store.log.save(log));
+            });
+
+            leaseObjs.forEach(ls => {
+                ls.timestamp = timestamp;
+                calls.push(this.store.lease.save(ls));
+            });
+
             calls.push(this.store.block.save(block));
             //console.log('Block %d ===> %j', blockNumber, block);
 
             try {
-                calls.push(publish('blockUpdated', JSON.stringify(block)));
                 await Promise.all(calls);
-                //await Promise.all(assetRegistryCalls);
                 console.log('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {

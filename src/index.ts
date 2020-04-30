@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const debug = require("debug")("watcher");
+const debug = require("debug")("be-harvester");
 
 import BlockProcessor from "./BlockProcessor";
 import {server} from "./rpc";

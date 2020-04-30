@@ -7,8 +7,8 @@
     "scripts": {
         "build": "tsc",
         "start": "tsc && DEBUG=be-harvester:* node dist",
-        "migration": "tsc && DEBUG=* node dist/migrate.js",
-        "rollback": "tsc && DEBUG=* node dist/rollback.js"
+        "migration": "tsc && DEBUG=be-harvester:* node dist/migrate.js",
+        "rollback": "tsc && DEBUG=be-harvester:* node dist/rollback.js"
     },
     "repository": {
         "type": "git",
@@ -29,10 +29,6 @@
         "debug": "^4.1.1",
         "dotenv": "^8.2.0",
         "jayson": "^3.2.0",
-        "knex": "^0.20.14",
-        "lodash": "^4.17.15",
-        "pg": "^8.0.2",
-        "redis": "^3.0.2",
-        "redis-clustr": "^1.7.0"
+        "lodash": "^4.17.15"
     }
 }
