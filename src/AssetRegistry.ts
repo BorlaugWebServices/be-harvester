@@ -12,7 +12,7 @@ export default class AssetRegistry {
     /**
      * checks transaction with `assetRegistry` module and creates/updates a lease object
      */
-    async process(transaction, blockNumber,blockHash) {
+    async process(transaction, blockNumber, blockHash) {
         if (transaction.method.section !== 'assetRegistry') {
             throw new Error("Not an assetRegistry transaction");
         } else if (transaction.method.method === 'newLease') {
@@ -27,14 +27,20 @@ export default class AssetRegistry {
             if (events.length > 0) {
                 let event = events[0];
                 let leaseid = event.event.data[0];
+                let arg = transaction.method.args[0];
                 let lease = {
-                    ...transaction.method.args[0],
-                    lease_id: event.event.data[0],
+                    id: leaseid,
                     blockNumber,
                     blockHash,
-                    extrinsicHash: transaction.hash
+                    extrinsicHash: transaction.hash,
+                    contractNumber: arg.contract_number,
+                    lessor: JSON.stringify(arg.lessor),
+                    lessee: JSON.stringify(arg.lessee),
+                    allocations: JSON.stringify(arg.allocations),
+                    effectiveTs: Number(arg.effective_ts.replace(/,/g, '')),
+                    expiryTs:  Number(arg.expiry_ts.replace(/,/g, ''))
                 };
-                await set(`lease:${leaseid}`, JSON.stringify(lease));
+                await this.store.lease.save(lease);
             } else {
                 throw new Error(`LeaseCreated Event not found`);
             }
