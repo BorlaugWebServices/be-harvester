@@ -1,0 +1,32 @@
+name: be-harvester CI
+
+on:
+  pull_request:
+    branches:         
+    - sandbox
+  push:
+    branches:         
+    - sandbox   
+
+env:
+  AWS_REPOSITORY_URL: ${{ secrets.AWS_REPOSITORY_URL }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  build-and-push:
+    name: Build and push image to AWS ECR
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@sandbox
+
+    - name: Setup ECR
+      run: $( aws ecr get-login --no-include-email --region ap-south-1)
+
+    - name: Build and tag the image
+      run: docker build -t $AWS_REPOSITORY_URL .
+
+    - name: Push
+      run: docker push $REPOSITORY_URL
