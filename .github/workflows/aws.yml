@@ -20,7 +20,7 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@sandbox
+      uses: actions/checkout@master
 
     - name: Setup ECR
       run: $( aws ecr get-login --no-include-email --region ap-south-1)
