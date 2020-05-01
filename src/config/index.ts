@@ -5,7 +5,6 @@ let path = `${__dirname}/../../.env`;
 
 dotenv.config({path: path});
 
-
 export const ADDAX_ADDRESS = process.env.ADDAX_ADDRESS;
 export const RPC_PORT = process.env.RPC_PORT;
 export const REDIS_HOSTS = process.env.REDIS_HOSTS.split(',');
