@@ -1,5 +1,5 @@
 {
-    "name": "watcher",
+    "name": "be-harvester",
     "version": "1.0.0",
     "description": "Listen to blocks and transactions and writes to DynamoDB",
     "main": "dist/index.js",
@@ -25,14 +25,10 @@
     },
     "dependencies": {
         "@polkadot/api": "^1.8.1",
-        "be-datastore": "file:../be-datastore",
+        "be-datastore": "https://github.com/BorlaugWebServices/be-datastore.git#sandbox",
         "debug": "^4.1.1",
         "dotenv": "^8.2.0",
         "jayson": "^3.2.0",
-        "knex": "^0.20.14",
-        "lodash": "^4.17.15",
-        "pg": "^8.0.2",
-        "redis": "^3.0.2",
-        "redis-clustr": "^1.7.0"
+        "lodash": "^4.17.15"
     }
 }
