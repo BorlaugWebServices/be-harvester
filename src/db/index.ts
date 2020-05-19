@@ -1,4 +1,4 @@
-const debug = require("debug")("watcher:db");
+const debug = require("debug")("harvester:db");
 
 import {REDIS_PORTS, REDIS_HOSTS, DB_TYPE, DB_URL} from "../config";
 

@@ -1,4 +1,4 @@
-const debug = require("debug")("watcher:BlockProcessor");
+const debug = require("debug")("harvester:BlockProcessor");
 
 import {ADDAX_ADDRESS, TTL, Store, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS} from "./config";
 import {types} from "./primitives";
