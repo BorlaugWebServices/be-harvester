@@ -39,11 +39,6 @@ client.on('fullReady', () => {
 });
 
 export const set = promisify(client.set).bind(client);
-export const lpush = promisify(client.lpush).bind(client);
-export const zadd = promisify(client.zadd).bind(client);
 export const publish = promisify(client.publish).bind(client);
-export const del = promisify(client.del).bind(client);
-export const _keys = promisify(client.keys).bind(client);
-export const mget = promisify(client.mget).bind(client);
 
 export const knex = require('knex')({client: DB_TYPE, connection: DB_URL, debug: false});

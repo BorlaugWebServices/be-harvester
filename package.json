@@ -1,5 +1,5 @@
 {
-    "name": "watcher",
+    "name": "harvester",
     "version": "1.0.0",
     "description": "Listen to blocks and transactions and writes to DynamoDB",
     "main": "dist/index.js",

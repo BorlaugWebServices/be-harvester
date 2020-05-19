@@ -21,7 +21,7 @@ export default class BlockProcessor {
                 types: types
             });
             this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
-            this.assetRegistry = new AssetRegistry(this.store);
+            this.assetRegistry = new AssetRegistry(this.store, this.api);
         }
     }
 
