@@ -12,9 +12,7 @@ server.http().listen(RPC_PORT);
 
 async function main() {
     const blockProcessor = new BlockProcessor();
-    await blockProcessor.getBlock(518239);
-    // await blockProcessor.getBlock(518873);
-    // await blockProcessor.subscribeNewHeads();
+    await blockProcessor.subscribeNewHeads();
 }
 
 console.log("Harvester started");

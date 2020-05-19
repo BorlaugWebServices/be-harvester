@@ -30,8 +30,11 @@ export default class AssetRegistry {
                 let resgistrid = arg.allocations[0].registry_id;
                 let assetid = arg.allocations[0].asset_id;
                 let assetStorage = await this.api.query.assetRegistry.assets(resgistrid, assetid);
+
                 let asset = {
                     number: hexToString(assetStorage.asset_number.toString()),
+                    share: assetStorage.total_shares,
+                    status: assetStorage.status,
                     origin: null,
                     country: null
                 };
@@ -60,15 +63,15 @@ export default class AssetRegistry {
             } else {
                 throw new Error(`LeaseCreated Event not found`);
             }
+        } else if (transaction.method.method === 'voidLease') {
+            console.log("void lease");
+            let leaseId = transaction.method.args[1];
+            return {
+                lease_id: leaseId,
+                tx_hash: transaction.hash
+            }
+        } else {
+            throw new Error("Method not recognized");
         }
-
-        // else if (transaction.method.method === 'voidLease') {
-        //     console.log("void lease");
-        //     let leaseId = transaction.method.args[1];
-        //     let leaseActivityKey = `lease:${leaseId}:activities`;
-        //     await lpush(leaseActivityKey, transaction.hash);
-        // } else {
-        //     throw new Error("Method not recognized");
-        // }
     }
 }

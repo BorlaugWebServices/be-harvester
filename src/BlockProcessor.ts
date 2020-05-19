@@ -165,8 +165,12 @@ export default class BlockProcessor {
             });
 
             leaseObjs.forEach(ls => {
-                ls.timestamp = timestamp;
-                calls.push(this.store.lease.save(ls));
+                if(ls.tx_hash){
+                    calls.push(this.store.lease.saveActivity(ls))
+                } else {
+                    ls.timestamp = timestamp;
+                    calls.push(this.store.lease.save(ls));
+                }
             });
 
             calls.push(this.store.block.save(block));
