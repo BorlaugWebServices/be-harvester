@@ -19,7 +19,7 @@ export const server = jayson.server({
     },
     cleanup: async function ({blockNumber}, callback) {
         try {
-            if(!this.store){
+            if (!this.store) {
                 this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
             }
 

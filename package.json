@@ -6,13 +6,13 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
-        "start": "tsc && DEBUG=be-harvester:* node dist",
-        "migration": "tsc && DEBUG=* node dist/migrate.js",
-        "rollback": "tsc && DEBUG=* node dist/rollback.js"
+        "start": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist",
+        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migrate.js",
+        "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/rollback.js"
     },
     "repository": {
         "type": "git",
-        "url": "git@gitlab.com:Borlaug/block-explorer/watcher.git"
+        "url": "git@github.com/BorlaugWebServices/be-harvester.git"
     },
     "author": "",
     "license": "ISC",
