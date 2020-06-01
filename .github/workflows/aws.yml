@@ -20,7 +20,7 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
 
     - name: Check REPO url
       run: echo $AWS_REPOSITORY_URL
@@ -32,4 +32,4 @@ jobs:
       run: docker build -t $AWS_REPOSITORY_URL .
 
     - name: Push
-      run: docker push $REPOSITORY_URL
+      run: docker push $AWS_REPOSITORY_URL
