@@ -32,4 +32,4 @@ jobs:
       run: docker build -t $AWS_REPOSITORY_URL .
 
     - name: Push
-      run: docker push $REPOSITORY_URL
+      run: docker push $AWS_REPOSITORY_URL
