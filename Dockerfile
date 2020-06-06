@@ -9,4 +9,4 @@ RUN npm run build
 
 EXPOSE 6000
 
-CMD [ "DEBUG=be-harvester:*", "node", "dist" ]
+CMD [ "npm","start" ]
