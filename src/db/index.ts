@@ -26,19 +26,19 @@ const client = new RedisClustr({
 });
 
 client.on('error', (error) => {
-    console.log('error %o', error.message);
+    //console.log('error %o', error.message);
     debug('error %o', error.message);
 });
 client.on('connectionError', (error) => {
-    console.log('connectionError %o', error.message);
+    //console.log('connectionError %o', error.message);
     debug('connectionError %o', error.message);
 });
 client.on('connect', () => {
-    console.log('Successfully connected to redis');
+    //console.log('Successfully connected to redis');
     debug('Successfully connected to redis');
 });
 client.on('fullReady', () => {
-    console.log('Successfully connected to redis and ready');
+    //console.log('Successfully connected to redis and ready');
     debug('Successfully connected to redis and ready');
 });
 

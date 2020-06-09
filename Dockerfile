@@ -7,6 +7,6 @@ WORKDIR "/home/be-harvester"
 RUN npm install --silent
 RUN npm run build
 
-EXPOSE 6000
+EXPOSE 4000
 
 CMD [ "npm","start" ]

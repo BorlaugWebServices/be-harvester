@@ -4,7 +4,6 @@ import {ADDAX_ADDRESS, TTL, Store, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS} fr
 import {types} from "./primitives";
 import AssetRegistry from "./AssetRegistry";
 import {WsProvider} from '@polkadot/rpc-provider';
-import { publish, set, knex} from "./db";
 
 const {ApiPromise} = require('@polkadot/api');
 
@@ -29,7 +28,7 @@ export default class BlockProcessor {
         await this.init();
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
-            console.log('Chain is at block: %d ;', blockNumber);
+            //console.log('Chain is at block: %d ;', blockNumber);
             debug('New Block: %d ;', blockNumber);
             this.getBlock(blockNumber);
         });
@@ -83,7 +82,7 @@ export default class BlockProcessor {
                     evnObjs.push(_event);
                 }
             } catch (e) {
-                console.log("Can't get events of %d, Error : %O ;", blockNumber, e);
+                //console.log("Can't get events of %d, Error : %O ;", blockNumber, e);
                 debug("Can't get events of %d, Error : %O ;", blockNumber, e);
             }
 
@@ -180,15 +179,15 @@ export default class BlockProcessor {
 
             try {
                 await Promise.all(calls);
-                console.log('Block %d synced ;', blockNumber);
+                //console.log('Block %d synced ;', blockNumber);
                 debug('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {
-                console.log('Block %d sync failed. Error: %O ;', blockNumber, err);
+                //console.log('Block %d sync failed. Error: %O ;', blockNumber, err);
                 debug('Block %d sync failed. Error: %O ;', blockNumber, err);
             }
         } catch (e) {
-            console.log('Block %d fetch failed. Error: %O ;', blockNumber, e);
+            //console.log('Block %d fetch failed. Error: %O ;', blockNumber, e);
             debug('Block %d fetch failed. Error: %O ;', blockNumber, e);
             return null;
         }

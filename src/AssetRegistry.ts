@@ -20,7 +20,7 @@ export default class AssetRegistry {
         if (transaction.method.section !== 'assetRegistry') {
             throw new Error("Not an assetRegistry transaction");
         } else if (transaction.method.method === 'newLease') {
-            console.log("new lease");
+            //console.log("new lease");
             debug("new lease");
 
             let events = _.filter(_events, (e) => {
@@ -67,7 +67,7 @@ export default class AssetRegistry {
                 throw new Error(`LeaseCreated Event not found`);
             }
         } else if (transaction.method.method === 'voidLease') {
-            console.log("void lease");
+            //console.log("void lease");
             debug("void lease");
             let leaseId = transaction.method.args[1];
             return {
