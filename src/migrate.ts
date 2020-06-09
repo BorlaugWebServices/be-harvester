@@ -10,7 +10,7 @@ Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL)
     process.exit();
 })
 .catch(error => {
-    console.error("Migration Failed", error);
+    //console.error("Migration Failed", error);
     debug("Migration Failed", error);
     process.exit();
 });

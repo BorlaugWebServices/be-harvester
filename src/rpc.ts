@@ -11,7 +11,7 @@ export const server = jayson.server({
         try {
             block = await blockProcessor.getBlock(blockNumber);
         } catch (e) {
-            console.error(`${blockNumber} Not Found`);
+            //console.error(`${blockNumber} Not Found`);
             debug(`Block %d not found`);
         } finally {
             callback(null, block);
@@ -27,7 +27,7 @@ export const server = jayson.server({
 
             callback(null, true);
         } catch (e) {
-            console.error(e);
+            //console.error(e);
             debug(e);
             callback(null, false);
         }

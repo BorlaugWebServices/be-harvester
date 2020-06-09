@@ -10,7 +10,7 @@ Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL)
     process.exit();
 })
 .catch(error => {
-    console.error("Rollback Failed", error);
+    //console.error("Rollback Failed", error);
     debug("Rollback Failed", error);
     process.exit();
 });
