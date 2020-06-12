@@ -9,6 +9,7 @@ export const server = jayson.server({
     syncBlock: async function ({blockNumber}, callback) {
         let block = null;
         try {
+            debug(`Block %d sync request`, blockNumber);
             block = await blockProcessor.getBlock(blockNumber);
         } catch (e) {
             //console.error(`${blockNumber} Not Found`);
