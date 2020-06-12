@@ -28,7 +28,6 @@ export default class BlockProcessor {
         await this.init();
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
-            //console.log('Chain is at block: %d ;', blockNumber);
             debug('New Block: %d ;', blockNumber);
             this.getBlock(blockNumber);
         });
@@ -42,7 +41,6 @@ export default class BlockProcessor {
                 this.latestBlockNumber = blockNumber;
             }
             blockHash = this.toJson(blockHash);
-            //console.log('Block Hash of block %d is %o ;', blockNumber, blockHash);
 
             let _block = await this.api.rpc.chain.getBlock(blockHash);
             let timestamp = null;
@@ -57,7 +55,6 @@ export default class BlockProcessor {
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
-                //console.log('Events of block %d is %o', blockNumber, this.toJson(events.toHuman({isExtended: true})));
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
                     const {event, phase} = events[i];
@@ -82,14 +79,12 @@ export default class BlockProcessor {
                     evnObjs.push(_event);
                 }
             } catch (e) {
-                //console.log("Can't get events of %d, Error : %O ;", blockNumber, e);
                 debug("Can't get events of %d, Error : %O ;", blockNumber, e);
             }
 
             //Save extrinsics separately
             for (let i = 0; i < _block.block.extrinsics.length; i++) {
                 let ex = _block.block.extrinsics[i];
-                //console.log('Extrinsic index %o', ex.method.callIndex);
                 if (ex.isSigned) {
                     let hash = ex.hash.toHex();
                     let transaction = ex.toHuman({isExtended: true});
@@ -175,19 +170,15 @@ export default class BlockProcessor {
             });
 
             calls.push(this.store.block.save(block));
-            //console.log('Block %d ===> %j', blockNumber, block);
 
             try {
                 await Promise.all(calls);
-                //console.log('Block %d synced ;', blockNumber);
                 debug('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {
-                //console.log('Block %d sync failed. Error: %O ;', blockNumber, err);
                 debug('Block %d sync failed. Error: %O ;', blockNumber, err);
             }
         } catch (e) {
-            //console.log('Block %d fetch failed. Error: %O ;', blockNumber, e);
             debug('Block %d fetch failed. Error: %O ;', blockNumber, e);
             return null;
         }
