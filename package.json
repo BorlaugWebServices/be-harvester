@@ -7,8 +7,8 @@
     "scripts": {
         "build": "tsc",
         "start": "DEBUG=be-harvester:*,be-datastore:* node dist",
-        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migrate.js",
-        "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/rollback.js"
+        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/up.js",
+        "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/down.js"
     },
     "repository": {
         "type": "git",
@@ -25,7 +25,7 @@
     "dependencies": {
         "@polkadot/api": "^1.18.1",
         "@types/debug": "^4.1.5",
-        "be-datastore": "https://github.com/BorlaugWebServices/be-datastore.git#sandbox",
+        "be-datastore": "../be-datastore",
         "debug": "^4.1.1",
         "dotenv": "^8.2.0",
         "i": "^0.3.6",

@@ -2,7 +2,8 @@ const debug = require("debug")("be-harvester:BlockProcessor");
 
 import {ADDAX_ADDRESS, TTL, Store, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS} from "./config";
 import {types} from "./primitives";
-import AssetRegistry from "./AssetRegistry";
+import AssetRegistry from "./asset-registry";
+import Identity from "./identity";
 import {WsProvider} from '@polkadot/rpc-provider';
 
 const {ApiPromise} = require('@polkadot/api');
@@ -12,6 +13,7 @@ export default class BlockProcessor {
     private store;
     private latestBlockNumber = 0;
     private assetRegistry;
+    private identity;
 
     async init() {
         if (!this.api) {
@@ -21,6 +23,7 @@ export default class BlockProcessor {
             });
             this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
             this.assetRegistry = new AssetRegistry(this.store, this.api);
+            this.identity = new Identity(this.store, this.api);
         }
     }
 
@@ -43,6 +46,7 @@ export default class BlockProcessor {
             blockHash = this.toJson(blockHash);
 
             let _block = await this.api.rpc.chain.getBlock(blockHash);
+            //console.log('Block: ', JSON.stringify(_block));
             let timestamp = null;
             let _transactions = [];
             let _inherents = [];
@@ -51,10 +55,12 @@ export default class BlockProcessor {
             let calls = [];
             let map = {};
 
-            let txObjs = [], inhObjs = [], evnObjs = [], logObjs =[], leaseObjs = [];
+            let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
+            let leaseObjs = [], didObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
+
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
                     const {event, phase} = events[i];
@@ -92,12 +98,17 @@ export default class BlockProcessor {
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
                     transaction["events"] = map[`${blockNumber}-${i}`];
-                    transaction["blockNumber"]=blockNumber;
+                    transaction["blockNumber"] = blockNumber;
                     _transactions.push(hash);
                     txObjs.push(transaction);
 
-                    if(transaction.method.section === 'assetRegistry'){
-                        leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber,blockHash));
+                    switch (transaction.method.section) {
+                        case 'assetRegistry':
+                            leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
+                            break;
+                        case 'identity':
+                            didObjs.push(await this.identity.process(transaction, evnObjs, blockNumber, blockHash));
+                            break;
                     }
                 } else {
                     const id = `${blockNumber}-${i}`;
@@ -114,6 +125,8 @@ export default class BlockProcessor {
                     inhObjs.push(inherent);
                 }
             }
+
+            //debug('identities : %s ;',JSON.stringify(didObjs[0]));
 
             //Save logs separately
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
@@ -140,28 +153,37 @@ export default class BlockProcessor {
                 logs: _logs,
             };
 
-            evnObjs.forEach(evn=>{
+            evnObjs.forEach(evn => {
                 evn.timestamp = timestamp;
                 calls.push(this.store.event.save(evn));
             });
 
-            txObjs.forEach(tx=>{
+            txObjs.forEach(tx => {
                 tx.timestamp = timestamp;
                 calls.push(this.store.transaction.save(tx));
             });
 
-            inhObjs.forEach(inh=>{
+            inhObjs.forEach(inh => {
                 inh.timestamp = timestamp;
                 calls.push(this.store.inherent.save(inh));
             });
 
-            logObjs.forEach(log=>{
+            logObjs.forEach(log => {
                 log.timestamp = timestamp;
                 calls.push(this.store.log.save(log));
             });
 
+            didObjs.forEach(did => {
+                if (did.tx_hash) {
+                    calls.push(this.store.identity.saveActivity(did))
+                } else {
+                    did.timestamp = timestamp;
+                    calls.push(this.store.identity.save(did));
+                }
+            });
+
             leaseObjs.forEach(ls => {
-                if(ls.tx_hash){
+                if (ls.tx_hash) {
                     calls.push(this.store.lease.saveActivity(ls))
                 } else {
                     ls.timestamp = timestamp;

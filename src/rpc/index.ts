@@ -1,7 +1,7 @@
 const debug = require("debug")("be-harvester:rpc");
 const jayson = require('jayson');
-import BlockProcessor from "./BlockProcessor";
-import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
+import BlockProcessor from "../BlockProcessor";
+import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "../config";
 
 const blockProcessor = new BlockProcessor();
 
