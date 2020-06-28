@@ -1,6 +1,6 @@
 const debug = require("debug")("be-harvester:BlockProcessor");
 
-import {ADDAX_ADDRESS, TTL, Store, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS} from "./config";
+import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
 import {types} from "./primitives";
 import AssetRegistry from "./asset-registry";
 import Identity from "./identity";
@@ -32,11 +32,11 @@ export default class BlockProcessor {
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
             debug('New Block: %d ;', blockNumber);
-            this.getBlock(blockNumber);
+            this.getBlockByNumber(blockNumber);
         });
     }
 
-    async getBlock(blockNumber: number): Promise<string> {
+    async getBlockByNumber(blockNumber: number): Promise<String> {
         await this.init();
         try {
             let blockHash = await this.api.rpc.chain.getBlockHash(blockNumber);
@@ -44,8 +44,21 @@ export default class BlockProcessor {
                 this.latestBlockNumber = blockNumber;
             }
             blockHash = this.toJson(blockHash);
+            let block = await this.getBlockByHash(blockHash);
+            if (!block) {
+                debug('Block %d fetch failed ;', blockNumber);
+            }
+            return block;
+        } catch (e) {
+            debug('Block %d fetch failed. Error: %O ;', blockNumber, e);
+            return null;
+        }
+    }
 
+    async getBlockByHash(blockHash): Promise<String> {
+        try {
             let _block = await this.api.rpc.chain.getBlock(blockHash);
+            const blockNumber = _block.block.header.number;
             //console.log('Block: ', JSON.stringify(_block));
             let timestamp = null;
             let _transactions = [];
@@ -201,7 +214,7 @@ export default class BlockProcessor {
                 debug('Block %d sync failed. Error: %O ;', blockNumber, err);
             }
         } catch (e) {
-            debug('Block %d fetch failed. Error: %O ;', blockNumber, e);
+            debug('Block %s fetch failed. Error: %O ;', blockHash, e);
             return null;
         }
     }

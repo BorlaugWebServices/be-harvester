@@ -2,19 +2,34 @@ const debug = require("debug")("be-harvester:rpc");
 const jayson = require('jayson');
 import BlockProcessor from "../BlockProcessor";
 import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "../config";
+const NUMBER_PATTERN = RegExp('^[0-9]*$');
+const HASH_PATTERN   = RegExp('^0x([A-Fa-f0-9]{64})$');
 
 const blockProcessor = new BlockProcessor();
 
 export const server = jayson.server({
-    syncBlock: async function ({blockNumber}, callback) {
+    syncBlock: async function ({numberOrHash}, callback) {
         let block = null;
-        try {
-            debug(`Block %d sync request`, blockNumber);
-            block = await blockProcessor.getBlock(blockNumber);
-        } catch (e) {
-            //console.error(`${blockNumber} Not Found`);
-            debug(`Block %d not found`);
-        } finally {
+        debug(`Block %o sync request`, numberOrHash);
+
+        if(NUMBER_PATTERN.test(numberOrHash)) {
+            try {
+                block = await blockProcessor.getBlockByNumber(numberOrHash);
+            } catch (e) {
+                debug(`Block %d not found; Error %o ;`, numberOrHash, e);
+            } finally {
+                callback(null, block);
+            }
+        } else if(HASH_PATTERN.test(numberOrHash)) {
+            try {
+                block = await blockProcessor.getBlockByHash(numberOrHash);
+            } catch (e) {
+                debug(`Block %s not found; Error %o ;`, numberOrHash, e);
+            } finally {
+                callback(null, block);
+            }
+        } else {
+            debug('Invalid block number or hash');
             callback(null, block);
         }
     },
