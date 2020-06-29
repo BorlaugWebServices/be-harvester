@@ -14,9 +14,6 @@ server.http().listen(RPC_PORT);
 async function main() {
     const blockProcessor = new BlockProcessor();
     await blockProcessor.subscribeNewHeads();
-    //created with props
-    // await blockProcessor.getBlock(252);
-    // Add single prop
 }
 
 debug("Harvester started");

@@ -57,9 +57,11 @@ export default class BlockProcessor {
 
     async getBlockByHash(blockHash): Promise<String> {
         try {
+            await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
             const blockNumber = _block.block.header.number;
-            //console.log('Block: ', JSON.stringify(_block));
+            //debug('Block: ', JSON.stringify(_block));
+
             let timestamp = null;
             let _transactions = [];
             let _inherents = [];
@@ -120,7 +122,14 @@ export default class BlockProcessor {
                             leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
                             break;
                         case 'identity':
-                            didObjs.push(await this.identity.process(transaction, evnObjs, blockNumber, blockHash));
+                            let didObj = await this.identity.process(transaction, evnObjs, blockNumber, blockHash);
+                            if(Array.isArray(didObj)){
+                                didObj.forEach(obj =>{
+                                    didObjs.push(obj);
+                                })
+                            } else {
+                                didObjs.push(didObj);
+                            }
                             break;
                     }
                 } else {

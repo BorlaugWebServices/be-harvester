@@ -39,9 +39,9 @@ export const server = jayson.server({
                 this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
             }
 
-            await this.store.cleanup();
+            let count = await this.store.cleanup();
 
-            callback(null, true);
+            callback(null, count);
         } catch (e) {
             //console.error(e);
             debug(e);
