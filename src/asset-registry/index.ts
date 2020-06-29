@@ -1,4 +1,4 @@
-const debug = require("debug")("be-harvester:AssetRegistry");
+const debug = require("debug")("be-harvester:asset-registry");
 
 import _ from "lodash";
 import {hexToString} from '@polkadot/util';

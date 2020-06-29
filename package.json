@@ -7,8 +7,8 @@
     "scripts": {
         "build": "tsc",
         "start": "DEBUG=be-harvester:*,be-datastore:* node dist",
-        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migrate.js",
-        "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/rollback.js"
+        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/up.js",
+        "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/down.js"
     },
     "repository": {
         "type": "git",

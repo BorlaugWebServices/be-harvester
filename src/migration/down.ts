@@ -1,6 +1,6 @@
 const debug = require("debug")("be-harvester:Rollback");
 
-import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
+import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "../config";
 
 Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL)
 .then(async (store) => {
