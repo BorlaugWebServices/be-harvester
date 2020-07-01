@@ -1,4 +1,6 @@
 export const Types = {
+    "Address": "AccountId",
+    "LookupSource": "AccountId",
     "Balance": "u128",
     "Timestamp": "u64",
     "Moment": "u64",
@@ -11,7 +13,6 @@ export const Types = {
     },
     "ClaimIndex": "u64",
     "Claim": {
-        "id": "ClaimIndex",
         "description": "Vec<u8>",
         "statements": "Vec<Statement>",
         "created_by": "Did",
@@ -46,7 +47,6 @@ export const Types = {
         "valid_until": "Timestamp"
     },
     "Asset": {
-        "asset_id": "Option<AssetId>",
         "properties": "Option<Vec<AssetProperty>>",
         "name": "Option<Vec<u8>>",
         "asset_number": "Option<Vec<u8>>",
@@ -62,7 +62,6 @@ export const Types = {
         "fact": "Fact"
     },
     "LeaseAgreement": {
-        "lease_id": "Option<LeaseId>",
         "contract_number": "Vec<u8>",
         "lessor": "Did",
         "lessee": "Did",
@@ -92,14 +91,26 @@ export const Types = {
     },
     "DidPropertyName": "Vec<u8>",
     "ShortName": "Vec<u8>",
-    "Address":"AccountId",
-    "LookupSource":"AccountId",
     "AuditId": "u32",
+    "AuditStatus": {
+        "_enum": [
+            "Requested",
+            "Accepted",
+            "Rejected",
+            "InProgress",
+            "Completed"
+        ]
+    },
+    "AuditCreatorId": "AccountId",
+    "AuditorId": "AccountId",
+    "Audit": {
+        "status": "AuditStatus",
+        "audit_creator": "AuditCreatorId",
+        "auditor": "AuditorId"
+    },
     "ControlPointId": "u32",
     "ObservationId": "u32",
-    "EvidenceId": "u32",
     "Observation": {
-        "observation_id": "Option<ObservationId>",
         "compliance": "Option<Compliance>",
         "procedural_note": "Option<[u8; 32]>"
     },
@@ -109,5 +120,12 @@ export const Types = {
             "Compliant",
             "NonCompliant"
         ]
+    },
+    "EvidenceId": "u32",
+    "Evidence": {
+        "name": "Vec<u8>",
+        "content_type": "Vec<u8>",
+        "url": "Option<Vec<u8>>",
+        "hash": "Vec<u8>"
     }
 };
