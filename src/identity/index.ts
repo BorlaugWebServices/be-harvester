@@ -131,24 +131,26 @@ export default class Identity {
     private getProperties(args) {
         let properties = [];
 
-        args.forEach(obj => {
-            // debug(obj);
-            let name = hexToString(obj.name);
-            let fact = null;
+        if(args && Array.isArray(args)){
+            args.forEach(obj => {
+                // debug(obj);
+                let name = hexToString(obj.name);
+                let fact = null;
 
-            if (obj.fact.Text) {
-                fact = hexToString(obj.fact.Text);
-            } else if (obj.fact.Bool !== null) {
-                fact = obj.fact.Bool;
-            } else if (obj.fact.U8) {
-                fact = obj.fact.U8;
-            }
-            //debug("property :", {name, fact});
-            properties.push({
-                name,
-                fact
-            })
-        });
+                if (obj.fact.Text) {
+                    fact = hexToString(obj.fact.Text);
+                } else if (obj.fact.Bool !== null) {
+                    fact = obj.fact.Bool;
+                } else if (obj.fact.U8) {
+                    fact = obj.fact.U8;
+                }
+                //debug("property :", {name, fact});
+                properties.push({
+                    name,
+                    fact
+                })
+            });
+        }
 
         return properties;
     }
