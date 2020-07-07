@@ -99,7 +99,8 @@ export default class BlockProcessor {
                     evnObjs.push(_event);
                 }
             } catch (e) {
-                debug("Can't get events of %d, Error : %O ;", blockNumber, e);
+                debug("Can't get events of %d (%s), Error : %O ;", blockNumber, blockHash, e);
+                throw e;
             }
 
             //Save extrinsics separately
@@ -122,8 +123,8 @@ export default class BlockProcessor {
                             break;
                         case 'identity':
                             let didObj = await this.identity.process(transaction, evnObjs, blockNumber, blockHash);
-                            if(Array.isArray(didObj)){
-                                didObj.forEach(obj =>{
+                            if (Array.isArray(didObj)) {
+                                didObj.forEach(obj => {
                                     didObjs.push(obj);
                                 })
                             } else {
