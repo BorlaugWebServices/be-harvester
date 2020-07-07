@@ -1,7 +1,7 @@
 const debug = require("debug")("be-harvester:rpc");
 const jayson = require('jayson');
 import BlockProcessor from "../BlockProcessor";
-import {DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "../config";
+import {DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX} from "../config";
 const NUMBER_PATTERN = RegExp('^[0-9]*$');
 const HASH_PATTERN   = RegExp('^0x([A-Fa-f0-9]{64})$');
 
@@ -36,7 +36,7 @@ export const server = jayson.server({
     cleanup: async function ({blockNumber}, callback) {
         try {
             if (!this.store) {
-                this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
+                this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
             }
 
             let count = await this.store.cleanup();

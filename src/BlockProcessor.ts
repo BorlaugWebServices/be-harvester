@@ -1,7 +1,6 @@
 const debug = require("debug")("be-harvester:BlockProcessor");
 
-import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, Store, TTL} from "./config";
-import {types} from "./primitives";
+import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX, TYPES} from "./config";
 import AssetRegistry from "./asset-registry";
 import Identity from "./identity";
 import {WsProvider} from '@polkadot/rpc-provider';
@@ -19,9 +18,9 @@ export default class BlockProcessor {
         if (!this.api) {
             this.api = await ApiPromise.create({
                 provider: new WsProvider(ADDAX_ADDRESS),
-                types: types
+                types: TYPES
             });
-            this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOSTS, REDIS_PORTS, TTL);
+            this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
             this.assetRegistry = new AssetRegistry(this.store, this.api);
             this.identity = new Identity(this.store, this.api);
         }
