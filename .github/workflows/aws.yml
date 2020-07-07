@@ -18,8 +18,7 @@
 
   jobs:
     build-and-push-inca:
-      only:
-        - inca
+      if: github.ref == 'refs/heads/inca'
       name: Build and push image to AWS ECR for INCA region
       runs-on: ubuntu-latest
       steps:
@@ -39,8 +38,7 @@
       - name: Push
         run: docker push $AWS_REPOSITORY_URL_INCA
     build-and-push-maya:
-      only:
-        - sandbox
+      if: github.ref == 'refs/heads/sandbox'
       name: Build and push image to AWS ECR for MAYA region
       runs-on: ubuntu-latest
       steps:
