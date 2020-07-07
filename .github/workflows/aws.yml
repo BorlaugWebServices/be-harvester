@@ -1,35 +1,61 @@
-name: be-harvester CI
+  name: be-harvester CI
 
-on:
-  pull_request:
-    branches:         
-    - sandbox
-  push:
-    branches:         
-    - sandbox   
+  on:
+    pull_request:
+      branches:
+      - sandbox
+      - inca
+    push:
+      branches:
+      - sandbox
+      - inca
 
-env:
-  AWS_REPOSITORY_URL: ${{ secrets.AWS_REPOSITORY_URL }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  env:
+    AWS_REPOSITORY_URL_INCA: ${{ secrets.AWS_REPOSITORY_URL_INCA }}
+    AWS_REPOSITORY_URL_MAYA: ${{ secrets.AWS_REPOSITORY_URL_MAYA }}
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-jobs:
-  build-and-push:
-    name: Build and push image to AWS ECR
-    runs-on: ubuntu-latest
-    steps:
+  jobs:
+    build-and-push-inca:
+      only:
+        - inca
+      name: Build and push image to AWS ECR for INCA region
+      runs-on: ubuntu-latest
+      steps:
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Check REPO url
-      run: echo $AWS_REPOSITORY_URL
+      - name: Check REPO url
+        run: echo $AWS_REPOSITORY_URL
 
-    - name: Setup ECR
-      run: $( aws ecr get-login --no-include-email --region ap-south-1)
+      - name: Setup ECR
+        run: $( aws ecr get-login --no-include-email --region ap-south-1)
 
-    - name: Build and tag the image
-      run: docker build -t $AWS_REPOSITORY_URL .
+      - name: Build and tag the image
+        run: docker build -t $AWS_REPOSITORY_URL_INCA .
 
-    - name: Push
-      run: docker push $AWS_REPOSITORY_URL
+      - name: Push
+        run: docker push $AWS_REPOSITORY_URL_INCA
+    build-and-push-maya:
+      only:
+        - sandbox
+      name: Build and push image to AWS ECR for MAYA region
+      runs-on: ubuntu-latest
+      steps:
+
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Check REPO url
+          run: echo $AWS_REPOSITORY_URL
+
+        - name: Setup ECR
+          run: $( aws ecr get-login --no-include-email --region ap-south-1)
+
+        - name: Build and tag the image
+          run: docker build -t $AWS_REPOSITORY_URL_INCA .
+
+        - name: Push
+          run: docker push $AWS_REPOSITORY_URL_INCA
