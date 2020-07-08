@@ -1,4 +1,5 @@
 const debug = require("debug")("be-harvester:BlockProcessor");
+const _ = require("lodash");
 
 import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX, TYPES} from "./config";
 import AssetRegistry from "./asset-registry";
@@ -58,8 +59,9 @@ export default class BlockProcessor {
         try {
             await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
+            //debug("Block : ", this.toJson(_block));
             const blockNumber = _block.block.header.number;
-            //debug('Block: ', JSON.stringify(_block));
+            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
 
             let timestamp = null;
             let _transactions = [];
@@ -86,7 +88,8 @@ export default class BlockProcessor {
                         event: event,
                         index: i,
                         blockNumber: blockNumber,
-                        extrinsicid: phase.isApplyExtrinsic ? `${blockNumber}-${phase.asApplyExtrinsic}` : null
+                        extrinsicid: phase.isApplyExtrinsic ? `${blockNumber}-${phase.asApplyExtrinsic}` : null,
+                        significant: isSignificantBlock
                     };
 
                     if (phase.isApplyExtrinsic) {
@@ -173,10 +176,13 @@ export default class BlockProcessor {
                 inherents: _inherents,
                 events: _events,
                 logs: _logs,
+                significant: isSignificantBlock
             };
 
             evnObjs.forEach(evn => {
                 evn.timestamp = timestamp;
+                evn.significant = isSignificantBlock;
+
                 calls.push(this.store.event.save(evn));
             });
 
@@ -192,6 +198,8 @@ export default class BlockProcessor {
 
             logObjs.forEach(log => {
                 log.timestamp = timestamp;
+                log.significant = isSignificantBlock;
+
                 calls.push(this.store.log.save(log));
             });
 
