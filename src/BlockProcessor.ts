@@ -4,6 +4,7 @@ const _ = require("lodash");
 import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX, TYPES} from "./config";
 import AssetRegistry from "./asset-registry";
 import Identity from "./identity";
+import Audit from "./audit";
 import {WsProvider} from '@polkadot/rpc-provider';
 
 const {ApiPromise} = require('@polkadot/api');
@@ -14,6 +15,7 @@ export default class BlockProcessor {
     private latestBlockNumber = 0;
     private assetRegistry;
     private identity;
+    private audit;
 
     async init() {
         if (!this.api) {
@@ -24,6 +26,7 @@ export default class BlockProcessor {
             this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
             this.assetRegistry = new AssetRegistry(this.store, this.api);
             this.identity = new Identity(this.store, this.api);
+            this.audit = new Audit(this.store, this.api);
         }
     }
 
@@ -59,7 +62,7 @@ export default class BlockProcessor {
         try {
             await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
-            //debug("Block : ", this.toJson(_block));
+            debug("Block : ", this.toJson(_block));
             const blockNumber = _block.block.header.number;
             let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
 
@@ -72,7 +75,7 @@ export default class BlockProcessor {
             let map = {};
 
             let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-            let leaseObjs = [], didObjs = [];
+            let leaseObjs = [], didObjs = [], auditObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -133,6 +136,9 @@ export default class BlockProcessor {
                             } else {
                                 didObjs.push(didObj);
                             }
+                            break;
+                        case 'audit':
+                            auditObjs.push(await this.audit.process(transaction, evnObjs, blockNumber, blockHash));
                             break;
                     }
                 } else {
