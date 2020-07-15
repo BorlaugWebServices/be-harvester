@@ -69,7 +69,7 @@ export const server = jayson.server({
             prop.toJSON().properties.forEach(prop => {
                 properties.push({
                     name: hexToString(prop.name),
-                    fact: prop.fact.Text?hexToString(prop.fact.Text):prop.fact[0]
+                    fact: prop.fact.Text?hexToString(prop.fact.Text):prop.fact.Bool?prop.fact.Bool:prop.fact.U8
                 });
             });
             // debug('didDoc: %O', properties);
@@ -90,7 +90,7 @@ export const server = jayson.server({
                 _claim.statements.forEach(st=>{
                     claim.statements.push({
                         name: hexToString(st.name),
-                        fact: st.fact.Text?hexToString(st.fact.Text):st.fact[0],
+                        fact: st.fact.Text?hexToString(st.fact.Text):st.fact.Bool?st.fact.Bool:st.fact.U8,
                         for_issuer: st.for_issuer
                     })
                 });
