@@ -73,7 +73,8 @@ export default class AssetRegistry {
                 tx_hash: transaction.hash
             }
         } else {
-            throw new Error("Method not recognized");
+            // throw new Error("Method not recognized");
+            debug("Method not recognized");
         }
     }
 }
