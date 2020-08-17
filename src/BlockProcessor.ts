@@ -62,7 +62,7 @@ export default class BlockProcessor {
         try {
             await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
-            debug("Block : ", this.toJson(_block));
+            // debug("Block : ", this.toJson(_block));
             const blockNumber = _block.block.header.number;
             let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
 

@@ -1,7 +1,7 @@
 {
     "name": "be-harvester",
     "version": "1.0.0",
-    "description": "Listen to blocks and transactions and writes to DynamoDB",
+    "description": "Listen to blocks and transactions and writes to be-datastore",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {

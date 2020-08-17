@@ -43,10 +43,7 @@ export default class Identity {
                     blockHash,
                     extrinsicHash: transaction.hash,
                     subject,
-                    controller,
-                    properties: JSON.stringify(properties),
-                    claims: JSON.stringify(claims),
-                    attestations: JSON.stringify(attestations)
+                    controller
                 }
             } else {
                 throw new Error(`Registered Event not found`);
@@ -63,9 +60,6 @@ export default class Identity {
                 let subject = event.event.data[0].toString();
                 let controller = event.event.data[1].toString();
                 let did = event.event.data[2].id.toString();
-                let properties = this.getProperties(transaction.method.args[0]);
-                let claims = [];
-                let attestations = [];
 
                 return {
                     did,
@@ -73,10 +67,7 @@ export default class Identity {
                     blockHash,
                     extrinsicHash: transaction.hash,
                     subject,
-                    controller,
-                    properties: JSON.stringify(properties),
-                    claims: JSON.stringify(claims),
-                    attestations: JSON.stringify(attestations)
+                    controller
                 }
             } else {
                 throw new Error(`Registered Event not found`);
