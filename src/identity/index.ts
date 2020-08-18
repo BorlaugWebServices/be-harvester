@@ -114,7 +114,8 @@ export default class Identity {
 
             return dids;
         } else {
-            throw new Error("Method not recognized");
+            // throw new Error("Method not recognized");
+            debug("Method not recognized");
         }
 
     }

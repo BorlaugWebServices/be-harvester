@@ -137,7 +137,7 @@ export default class BlockProcessor {
                                 didObjs.push(didObj);
                             }
                             break;
-                        case 'audit':
+                        case 'audits':
                             auditObjs.push(await this.audit.process(transaction, evnObjs, blockNumber, blockHash));
                             break;
                     }
@@ -210,20 +210,35 @@ export default class BlockProcessor {
             });
 
             didObjs.forEach(did => {
-                if (did.tx_hash) {
-                    calls.push(this.store.identity.saveActivity(did))
-                } else {
-                    did.timestamp = timestamp;
-                    calls.push(this.store.identity.save(did));
+                if(did) {
+                    if (did.tx_hash) {
+                        calls.push(this.store.identity.saveActivity(did))
+                    } else {
+                        did.timestamp = timestamp;
+                        calls.push(this.store.identity.save(did));
+                    }
                 }
             });
 
             leaseObjs.forEach(ls => {
-                if (ls.tx_hash) {
-                    calls.push(this.store.lease.saveActivity(ls))
-                } else {
-                    ls.timestamp = timestamp;
-                    calls.push(this.store.lease.save(ls));
+                if(ls) {
+                    if (ls.tx_hash) {
+                        calls.push(this.store.lease.saveActivity(ls))
+                    } else {
+                        ls.timestamp = timestamp;
+                        calls.push(this.store.lease.save(ls));
+                    }
+                }
+            });
+
+            auditObjs.forEach(adt => {
+                if(adt) {
+                    if (adt.tx_hash) {
+                        calls.push(this.store.audit.saveActivity(adt))
+                    } else {
+                        adt.timestamp = timestamp;
+                        calls.push(this.store.audit.save(adt));
+                    }
                 }
             });
 
