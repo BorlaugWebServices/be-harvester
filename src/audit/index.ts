@@ -17,115 +17,48 @@ export default class Audit {
      * checks transaction with `audit` module and creates/updates a identity object
      */
     async process(transaction, _events, blockNumber, blockHash) {
-        if (transaction.method.section !== 'audit') {
-            throw new Error("Not an identity transaction");
+        if (transaction.method.section !== 'audits') {
+            throw new Error("Not an audit transaction");
         }
 
-        debug(transaction.method.method);
-
-        if (transaction.method.method === 'registerDidFor') {
-            debug('registerDidFor');
+        if (transaction.method.method === 'createAudit') {
+            debug('createAudit');
 
             let events = _.filter(_events, (e) => {
-                return transaction.events.includes(e.id) && e.meta.name.toString() === 'Registered';
+                return transaction.events.includes(e.id) && e.meta.name.toString() === 'AuditCreated';
             });
 
             if (events.length > 0) {
                 let event = events[0];
-                let subject = event.event.data[0].toString();
-                let controller = event.event.data[1].toString();
-                let did = event.event.data[2].id.toString();
-                let properties = this.getProperties(transaction.method.args[1]);
-                let claims = [];
-                let attestations = [];
+                let account_id = event.event.data[0].toString();
+                let id = event.event.data[1].toString();
+                let auditStorage = await this.api.query.audits.audits(id);
+                let audit_creator = auditStorage.audit_creator.toString();
+                let auditor = auditStorage.auditor.toString();
 
                 return {
-                    did,
+                    id,
+                    audit_creator,
+                    auditor,
                     blockNumber,
                     blockHash,
-                    extrinsicHash: transaction.hash,
-                    subject,
-                    controller,
-                    properties: JSON.stringify(properties),
-                    claims: JSON.stringify(claims),
-                    attestations: JSON.stringify(attestations)
+                    extrinsicHash: transaction.hash
                 }
             } else {
-                throw new Error(`Registered Event not found`);
+                throw new Error(`CreateAudit Event not found`);
             }
-        } else if (transaction.method.method === 'registerDid') {
-            debug('registerDid');
-
-            let events = _.filter(_events, (e) => {
-                return transaction.events.includes(e.id) && e.meta.name.toString() === 'Registered';
-            });
-
-            if (events.length > 0) {
-                let event = events[0];
-                let subject = event.event.data[0].toString();
-                let controller = event.event.data[1].toString();
-                let did = event.event.data[2].id.toString();
-                let properties = this.getProperties(transaction.method.args[0]);
-                let claims = [];
-                let attestations = [];
-
-                return {
-                    did,
-                    blockNumber,
-                    blockHash,
-                    extrinsicHash: transaction.hash,
-                    subject,
-                    controller,
-                    properties: JSON.stringify(properties),
-                    claims: JSON.stringify(claims),
-                    attestations: JSON.stringify(attestations)
-                }
-            } else {
-                throw new Error(`Registered Event not found`);
-            }
-        } else if (['updateDid', 'replaceDid', 'manageControllers', 'authorizeClaimConsumers', 'revokeClaimConsumers',
-            'authorizeClaimIssuers', 'revokeClaimIssuers', 'createCatalog', 'removeCatalog'].includes(transaction.method.method)) {
+        } else if (['deleteAudit', 'acceptAudit', 'rejectAudit', 'completeAudit', 'createObservation',
+            'createEvidence', 'linkEvidence', 'unlinkEvidence', 'deleteEvidence',].includes(transaction.method.method)) {
             debug(transaction.method.method);
-            let did = transaction.method.args[0].id;
+            let audit_id = Number(transaction.method.args[0]);
 
             return {
-                did,
+                audit_id,
                 tx_hash: transaction.hash
             }
-        } else if (['makeClaim', 'attestClaim', 'revokeAttestation'].includes(transaction.method.method)) {
-            debug(transaction.method.method);
-            let did = transaction.method.args[1].id;
-
-            return {
-                did,
-                tx_hash: transaction.hash
-            }
-        } else if (transaction.method.method === 'addDidsToCatalog') {
-            debug(transaction.method.method);
-            let dids = [];
-
-            transaction.method.args[2].forEach(obj => {
-                dids.push({
-                    did: obj[0].id,
-                    tx_hash: transaction.hash
-                })
-            });
-
-            return dids;
-        } else if (transaction.method.method === 'removeDidsFromCatalog') {
-            debug(transaction.method.method);
-            let dids = [];
-
-            transaction.method.args[2].forEach(obj => {
-                dids.push({
-                    did: obj.id,
-                    tx_hash: transaction.hash
-                })
-            });
-
-            return dids;
         } else {
-            throw new Error("Method not recognized");
+            // throw new Error("Method not recognized");
+            debug("Method not recognized");
         }
 
     }
@@ -133,7 +66,7 @@ export default class Audit {
     private getProperties(args) {
         let properties = [];
 
-        if(args && Array.isArray(args)){
+        if (args && Array.isArray(args)) {
             args.forEach(obj => {
                 // debug(obj);
                 let name = hexToString(obj.name);
