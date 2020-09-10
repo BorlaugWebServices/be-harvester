@@ -69,7 +69,7 @@ export const server = jayson.server({
             prop.toJSON().properties.forEach(prop => {
                 properties.push({
                     name: hexToString(prop.name),
-                    fact: prop.fact.Text?hexToString(prop.fact.Text):prop.fact.Bool?prop.fact.Bool:prop.fact.U8
+                    fact: getPropertyValue(prop.fact),
                 });
             });
             // debug('didDoc: %O', properties);
@@ -77,7 +77,7 @@ export const server = jayson.server({
             let _claims = await this.api.query.identity.claimsOf(did);
             for (let i = 0; i < _claims.length; i++) {
                 _claims[i] = await this.api.query.identity.claims(did, _claims[i]);
-                _claims[i]=_claims[i].toJSON();
+                _claims[i] = _claims[i].toJSON();
             }
 
             let claims = [];
@@ -87,10 +87,10 @@ export const server = jayson.server({
                     description: hexToString(_claim.description),
                     statements: []
                 }
-                _claim.statements.forEach(st=>{
+                _claim.statements.forEach(st => {
                     claim.statements.push({
                         name: hexToString(st.name),
-                        fact: st.fact.Text?hexToString(st.fact.Text):st.fact.Bool?st.fact.Bool:st.fact.U8,
+                        fact: getPropertyValue(st.fact),
                         for_issuer: st.for_issuer
                     })
                 });
@@ -112,3 +112,23 @@ export const server = jayson.server({
         }
     }
 });
+
+function getPropertyValue(fact) {
+    if (fact.Text) {
+        return hexToString(fact.Text);
+    } else if (fact.Bool) {
+        return fact.Bool
+    } else if (fact.U8) {
+        return fact.U8;
+    } else if (fact.U16) {
+        return fact.U16;
+    } else if (fact.U32) {
+        return fact.U32;
+    } else if (fact.U128) {
+        return fact.U128;
+    } else if (fact.Date) {
+        return fact.Date;
+    } else if (fact.Iso8601) {
+        return fact.Iso8601;
+    }
+}
