@@ -110,5 +110,25 @@ export const server = jayson.server({
             debug(e);
             callback(null, false);
         }
+    },
+    getTemplateSteps: async function({ registryid, templateid, index }, callback) {
+        debug('getDIDState: RegistryId - %d , TemplateId - %d, index - %d', registryid, templateid, index);
+
+        try {
+            if (!this.api) {
+                this.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let registry = await this.api.query.provenance.templateSteps([registryid, templateid], index);
+            debug(registry.toJSON());
+
+            callback(null, registry.toHuman(true));
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
     }
 });

@@ -13,7 +13,7 @@ server.http().listen(RPC_PORT);
 
 async function main() {
     const blockProcessor = new BlockProcessor();
-    // await blockProcessor.subscribeNewHeads();
+    // // await blockProcessor.subscribeNewHeads();
     blockProcessor.getBlockByHash('0xbe2623c8d469c46c5967b5e478065d8f5b4056a6d77a4ac9be60d547766ec3c4');
     blockProcessor.getBlockByHash('0x47d0b0a27632d7e9810915fb313f74fd30c586d8a6528ad714765527b0fcc0d5');
     blockProcessor.getBlockByHash('0xb4e2e95b7ffaaf77bf97d9aea0bba20d74f0121c1f36dd00345f901a4d2393ad');
