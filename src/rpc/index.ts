@@ -111,8 +111,8 @@ export const server = jayson.server({
             callback(null, false);
         }
     },
-    getTemplateSteps: async function({ registryid, templateid, index }, callback) {
-        debug('getDIDState: RegistryId - %d , TemplateId - %d, index - %d', registryid, templateid, index);
+    getTemplateSteps: async function({ registryid, templateid }, callback) {
+        debug('getTemplateSteps: RegistryId - %d, TemplateId - %d', registryid, templateid);
 
         try {
             if (!this.api) {
@@ -122,10 +122,57 @@ export const server = jayson.server({
                 });
             }
 
-            let registry = await this.api.query.provenance.templateSteps([registryid, templateid], index);
-            debug(registry.toJSON());
+            let i = 0;
+            let steps = [];
 
-            callback(null, registry.toHuman(true));
+            while(true){
+                let step = await this.api.query.provenance.templateSteps([registryid, templateid], i);
+                step = step.toHuman(true);
+                if(step.name !== ''){
+                    steps.push(step);
+                    i++;
+                } else {
+                    break;
+                }
+            }
+
+            callback(null, steps);
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
+    },
+    getSequenceSteps: async function({ registryid, templateid, sequenceid }, callback) {
+        debug('getSequenceSteps: RegistryId - %d, TemplateId - %d, SequenceId - %d', registryid, templateid, sequenceid);
+
+        try {
+            if (!this.api) {
+                this.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let i = 0;
+            let steps = [];
+
+            while(true){
+                let step = await this.api.query.provenance.sequenceSteps([registryid, templateid, sequenceid], i);
+                step = step.toHuman(true);
+                if(step.attested_by.id !== '0x0000000000000000000000000000000000000000000000000000000000000000'){
+                    let attestor = await this.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
+                    attestor = attestor.toHuman(true)
+                    steps.push({
+                        ...step,
+                        attestor
+                    });
+                    i++;
+                } else {
+                    break;
+                }
+            }
+
+            callback(null, steps);
         } catch (e) {
             debug(e);
             callback(null, false);
