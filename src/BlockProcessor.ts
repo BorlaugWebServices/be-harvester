@@ -250,13 +250,16 @@ export default class BlockProcessor {
             });
 
             provenanceObjs.forEach(prv => {
-                debug("Provenance  : ",JSON.stringify(prv));
                 if(prv) {
                     if (prv.tx_hash) {
                         calls.push(this.store.provenance.saveActivity(prv))
                     } else {
                         prv.timestamp = timestamp;
                         calls.push(this.store.provenance.save(prv));
+                        calls.push(this.store.provenance.saveActivity({
+                            sequence_id: prv.id,
+                            tx_hash: prv.extrinsicHash
+                        }))
                     }
                 }
             });
