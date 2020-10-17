@@ -275,6 +275,7 @@ export default class BlockProcessor {
             }
         } catch (e) {
             debug('Block %s fetch failed. Error: %O ;', blockHash, e);
+            throw e;
             return null;
         }
     }
