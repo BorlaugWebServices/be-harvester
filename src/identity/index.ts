@@ -125,12 +125,13 @@ export default class Identity {
 
         if(args && Array.isArray(args)){
             args.forEach(obj => {
-                // debug(obj);
-                let name = hexToString(obj.name);
+                debug(obj);
+                let name = obj.name;
                 let fact = null;
 
                 if (obj.fact.Text) {
-                    fact = hexToString(obj.fact.Text);
+                    // fact = hexToString(obj.fact.Text);
+                    fact = obj.fact.Text;
                 } else if (obj.fact.Bool !== null) {
                     fact = obj.fact.Bool;
                 } else if (obj.fact.U8) {
