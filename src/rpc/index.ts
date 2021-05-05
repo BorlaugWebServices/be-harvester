@@ -9,6 +9,7 @@ import {DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX, ADDAX_
 
 const NUMBER_PATTERN = RegExp('^[0-9]*$');
 const HASH_PATTERN = RegExp('^0x([A-Fa-f0-9]{64})$');
+const TX_HASH_PATTERN = RegExp('^0x([A-Fa-f0-9]{64})$');
 
 const blockProcessor = new BlockProcessor();
 
@@ -35,6 +36,23 @@ export const server = jayson.server({
             }
         } else {
             debug('Invalid block number or hash');
+            callback(null, block);
+        }
+    },
+    syncTransaction: async function ({blockHash, txHash}, callback) {
+        let tx = null;
+        debug(`Transaction %o of block %o sync request`, blockHash.txHash);
+
+        if (HASH_PATTERN.test(blockHash) && TX_HASH_PATTERN.test(txHash)) {
+            try {
+                // tx = await blockProcessor.getBlockByHash(numberOrHash);
+            } catch (e) {
+                debug(`Transaction %s not found; Error %o ;`, txHash, e);
+            } finally {
+                callback(null, tx);
+            }
+        } else {
+            debug('Invalid block hash or transaction hash');
             callback(null, block);
         }
     },
@@ -111,7 +129,7 @@ export const server = jayson.server({
             callback(null, false);
         }
     },
-    getTemplateSteps: async function({ registryid, templateid }, callback) {
+    getTemplateSteps: async function ({registryid, templateid}, callback) {
         debug('getTemplateSteps: RegistryId - %d, TemplateId - %d', registryid, templateid);
 
         try {
@@ -125,10 +143,10 @@ export const server = jayson.server({
             let i = 0;
             let steps = [];
 
-            while(true){
+            while (true) {
                 let step = await this.api.query.provenance.templateSteps([registryid, templateid], i);
                 step = step.toHuman(true);
-                if(step.name !== ''){
+                if (step.name !== '') {
                     steps.push(step);
                     i++;
                 } else {
@@ -142,7 +160,7 @@ export const server = jayson.server({
             callback(null, false);
         }
     },
-    getSequenceSteps: async function({ registryid, templateid, sequenceid }, callback) {
+    getSequenceSteps: async function ({registryid, templateid, sequenceid}, callback) {
         debug('getSequenceSteps: RegistryId - %d, TemplateId - %d, SequenceId - %d', registryid, templateid, sequenceid);
 
         try {
@@ -156,10 +174,10 @@ export const server = jayson.server({
             let i = 0;
             let steps = [];
 
-            while(true){
+            while (true) {
                 let step = await this.api.query.provenance.sequenceSteps([registryid, templateid, sequenceid], i);
                 step = step.toHuman(true);
-                if(step.attested_by.id !== '0x0000000000000000000000000000000000000000000000000000000000000000'){
+                if (step.attested_by.id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
                     let attestor = await this.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
                     attestor = attestor.toHuman(true)
                     steps.push({
