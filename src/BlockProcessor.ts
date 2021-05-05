@@ -37,7 +37,7 @@ export default class BlockProcessor {
         await this.init();
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
-            debug('New Block: %d ;', blockNumber);
+            // debug('New Block: %d ;', blockNumber);
             this.getBlockByNumber(blockNumber);
         });
     }
@@ -268,7 +268,7 @@ export default class BlockProcessor {
 
             try {
                 await Promise.all(calls);
-                debug('Block %d synced ;', blockNumber);
+                // debug('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {
                 debug('Block %d sync failed. Error: %O ;', blockNumber, err);
