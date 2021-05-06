@@ -37,8 +37,8 @@ export default class BlockProcessor {
         await this.init();
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
-            debug('New Block: %d ;', blockNumber);
-            this.getBlockByNumber(blockNumber);
+            // debug('New Block: %d ;', blockNumber);
+            // this.getBlockByNumber(blockNumber);
         });
     }
 
@@ -119,7 +119,7 @@ export default class BlockProcessor {
                     let hash = ex.hash.toHex();
                     let transaction = ex.toHuman({isExtended: true});
                     transaction["index"] = i;
-                    // debug("Transaction : ", transaction);
+                    debug("Transaction : ", transaction);
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
                     transaction["events"] = map[`${blockNumber}-${i}`];
@@ -268,7 +268,7 @@ export default class BlockProcessor {
 
             try {
                 await Promise.all(calls);
-                debug('Block %d synced ;', blockNumber);
+                // debug('Block %d synced ;', blockNumber);
                 return JSON.stringify(block);
             } catch (err) {
                 debug('Block %d sync failed. Error: %O ;', blockNumber, err);
@@ -280,119 +280,181 @@ export default class BlockProcessor {
         }
     }
 
-    // async getTxByHash(blockHash, txHash): Promise<String> {
-    //     try {
-    //         await this.init();
-    //         let _block = await this.api.rpc.chain.getBlock(blockHash);
-    //         //debug("Block : ", this.toJson(_block));
-    //         const blockNumber = _block.block.header.number;
-    //         let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
-    //
-    //         let timestamp = null;
-    //         let _transactions = [];
-    //         let _inherents = [];
-    //         let _events = [];
-    //         let _logs = [];
-    //         let calls = [];
-    //         let map = {};
-    //
-    //         let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-    //         let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [];
-    //         // Listen for events
-    //         try {
-    //             let events = await this.api.query.system.events.at(blockHash);
-    //
-    //             //Save events separately
-    //             for (let i = 0; i < events.length; i++) {
-    //                 const {event, phase} = events[i];
-    //                 const id = `${blockNumber}-${i}`;
-    //                 let _event = {
-    //                     id: id,
-    //                     phase: phase,
-    //                     meta: event.meta,
-    //                     event: event,
-    //                     index: i,
-    //                     blockNumber: blockNumber,
-    //                     extrinsicid: phase.isApplyExtrinsic ? `${blockNumber}-${phase.asApplyExtrinsic}` : null,
-    //                     significant: isSignificantBlock
-    //                 };
-    //
-    //                 if (phase.isApplyExtrinsic) {
-    //                     if (!map[`${blockNumber}-${phase.asApplyExtrinsic}`]) {
-    //                         map[`${blockNumber}-${phase.asApplyExtrinsic}`] = [];
-    //                     }
-    //                     map[`${blockNumber}-${phase.asApplyExtrinsic}`].push(id);
-    //                 }
-    //                 _events.push(id);
-    //                 evnObjs.push(_event);
-    //             }
-    //         } catch (e) {
-    //             debug("Can't get events of %d (%s), Error : %O ;", blockNumber, blockHash, e);
-    //             throw e;
-    //         }
-    //
-    //         //Save extrinsics separately
-    //         for (let i = 0; i < _block.block.extrinsics.length; i++) {
-    //             let ex = _block.block.extrinsics[i];
-    //             if (ex.isSigned) {
-    //                 let hash = ex.hash.toHex();
-    //                 let transaction = ex.toHuman({isExtended: true});
-    //                 transaction["index"] = i;
-    //                 // debug("Transaction : ", transaction);
-    //                 transaction["id"] = `${blockNumber}-${i}`;
-    //                 transaction["hash"] = hash;
-    //                 transaction["events"] = map[`${blockNumber}-${i}`];
-    //                 transaction["blockNumber"] = blockNumber;
-    //                 _transactions.push(hash);
-    //                 txObjs.push(transaction);
-    //
-    //                 switch (transaction.method.section) {
-    //                     case 'assetRegistry':
-    //                         leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
-    //                         break;
-    //                     case 'identity':
-    //                         let didObj = await this.identity.process(transaction, evnObjs, blockNumber, blockHash);
-    //                         if (Array.isArray(didObj)) {
-    //                             didObj.forEach(obj => {
-    //                                 didObjs.push(obj);
-    //                             })
-    //                         } else {
-    //                             didObjs.push(didObj);
-    //                         }
-    //                         break;
-    //                     case 'audits':
-    //                         auditObjs.push(await this.audit.process(transaction, evnObjs, blockNumber, blockHash));
-    //                         break;
-    //                     case 'provenance':
-    //                         provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));
-    //                         break;
-    //                 }
-    //             }
-    //         }
-    //
-    //         txObjs.forEach(tx => {
-    //             tx.timestamp = timestamp;
-    //             calls.push(this.store.transaction.save(tx));
-    //         })
-    //
-    //         let tx = {
-    //             isSigned: true,
-    //             method:
-    //         }
-    //
-    //         try {
-    //             await Promise.all(tx);
-    //             debug('Block %d synced ;', blockNumber);
-    //             return JSON.stringify(tx);
-    //         } catch (err) {
-    //             debug('Block %d sync failed. Error: %O ;', blockNumber, err);
-    //         }
-    //     } catch (e) {
-    //         debug('Block %s fetch failed. Error: %O ;', blockHash, e);
-    //         throw e;
-    //         return null;
-    //     }
-    // }
+    async getTxByHash(blockHash, txHash): Promise<String> {
+        try {
+            await this.init();
+            let _block = await this.api.rpc.chain.getBlock(blockHash);
+            const blockNumber = _block.block.header.number;
+            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
+
+            let timestamp = null;
+            let _transactions = [];
+            let _inherents = [];
+            let _events = [];
+            let calls = [];
+            let map = {};
+            let return_tx = {};
+
+            let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
+            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [];
+            // Listen for events
+
+            try {
+                let events = await this.api.query.system.events.at(blockHash);
+
+                //Save events separately
+                for (let i = 0; i < events.length; i++) {
+                    const {event, phase} = events[i];
+                    const id = `${blockNumber}-${i}`;
+                    let _event = {
+                        id: id,
+                        phase: phase,
+                        meta: event.meta,
+                        event: event,
+                        index: i,
+                        blockNumber: blockNumber,
+                        extrinsicid: phase.isApplyExtrinsic ? `${blockNumber}-${phase.asApplyExtrinsic}` : null,
+                        significant: isSignificantBlock
+                    };
+
+                    if (phase.isApplyExtrinsic) {
+                        if (!map[`${blockNumber}-${phase.asApplyExtrinsic}`]) {
+                            map[`${blockNumber}-${phase.asApplyExtrinsic}`] = [];
+                        }
+                        map[`${blockNumber}-${phase.asApplyExtrinsic}`].push(id);
+                    }
+                    _events.push(id);
+                    evnObjs.push(_event);
+                }
+            } catch (e) {
+                debug("Can't get events of %d (%s), Error : %O ;", blockNumber, blockHash, e);
+                throw e;
+            }
+
+            let ex = _block.block.extrinsics.find(extrinsic=> extrinsic.hash.toHex() === txHash);
+
+            if (ex.isSigned) {
+                let hash = ex.hash.toHex();
+                let transaction = ex.toHuman({isExtended: true});
+                transaction["index"] = 1;
+                debug("Transaction : ", transaction);
+                transaction["id"] = `${blockNumber}-1`;
+                transaction["hash"] = txHash;
+                transaction["events"] = map[`${blockNumber}-1`];
+                transaction["blockNumber"] = blockNumber;
+                _transactions.push(hash);
+                return_tx = transaction;
+                txObjs.push(transaction);
+
+                switch (transaction.method.section) {
+                    case 'assetRegistry':
+                        leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
+                        break;
+                    case 'identity':
+                        let didObj = await this.identity.process(transaction, evnObjs, blockNumber, blockHash);
+                        if (Array.isArray(didObj)) {
+                            didObj.forEach(obj => {
+                                didObjs.push(obj);
+                            })
+                        } else {
+                            didObjs.push(didObj);
+                        }
+                        break;
+                    case 'audits':
+                        auditObjs.push(await this.audit.process(transaction, evnObjs, blockNumber, blockHash));
+                        break;
+                    case 'provenance':
+                        provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));
+                        break;
+                }
+            }else {
+                const id = `${blockNumber}-1`;
+                let inherent = ex.toHuman({isExtended: true});
+                if (inherent.method.section === 'timestamp') {
+                    timestamp = inherent.method.args[0].replace(/,/g, '');
+                    timestamp = Number(timestamp);
+                }
+                inherent["index"] = 1;
+                inherent["id"] = id;
+                inherent["events"] = map[`${blockNumber}-1`];
+                inherent["blockNumber"] = blockNumber;
+                _inherents.push(id);
+                inhObjs.push(inherent);
+            }
+
+            evnObjs.forEach(evn => {
+                evn.timestamp = timestamp;
+                evn.significant = isSignificantBlock;
+
+                calls.push(this.store.event.save(evn));
+            });
+
+            txObjs.forEach(tx => {
+                tx.timestamp = timestamp;
+                calls.push(this.store.transaction.save(tx));
+            })
+
+            didObjs.forEach(did => {
+                if(did) {
+                    if (did.tx_hash) {
+                        calls.push(this.store.identity.saveActivity(did))
+                    } else {
+                        did.timestamp = timestamp;
+                        calls.push(this.store.identity.save(did));
+                    }
+                }
+            });
+
+            leaseObjs.forEach(ls => {
+                if(ls) {
+                    if (ls.tx_hash) {
+                        calls.push(this.store.lease.saveActivity(ls))
+                    } else {
+                        ls.timestamp = timestamp;
+                        calls.push(this.store.lease.save(ls));
+                    }
+                }
+            });
+
+            auditObjs.forEach(adt => {
+                if(adt) {
+                    if (adt.tx_hash) {
+                        calls.push(this.store.audit.saveActivity(adt))
+                    } else {
+                        adt.timestamp = timestamp;
+                        calls.push(this.store.audit.save(adt));
+                    }
+                }
+            });
+
+            provenanceObjs.forEach(prv => {
+                if(prv) {
+                    if (prv.tx_hash) {
+                        calls.push(this.store.provenance.saveActivity(prv))
+                    } else {
+                        prv.timestamp = timestamp;
+                        calls.push(this.store.provenance.save(prv));
+                        calls.push(this.store.provenance.saveActivity({
+                            sequence_id: prv.id,
+                            tx_hash: prv.extrinsicHash
+                        }))
+                    }
+                }
+            });
+
+            try {
+                await Promise.all(calls);
+                debug('Transaction %d synced ;', txHash);
+                return JSON.stringify(return_tx);
+            } catch (err) {
+                debug('Transaction %d sync failed. Error: %O ;', txHash, err);
+            }
+        } catch (e) {
+            debug('Transaction %s fetch failed. Error: %O ;', txHash, e);
+            throw e;
+            return null;
+        }
+    }
 
     toJson(type) {
         return JSON.parse(JSON.stringify(type));

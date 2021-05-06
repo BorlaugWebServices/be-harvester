@@ -45,7 +45,7 @@ export const server = jayson.server({
 
         if (HASH_PATTERN.test(blockHash) && TX_HASH_PATTERN.test(txHash)) {
             try {
-                // tx = await blockProcessor.getBlockByHash(numberOrHash);
+                tx = await blockProcessor.getTxByHash(blockHash, txHash);
             } catch (e) {
                 debug(`Transaction %s not found; Error %o ;`, txHash, e);
             } finally {
@@ -53,7 +53,7 @@ export const server = jayson.server({
             }
         } else {
             debug('Invalid block hash or transaction hash');
-            callback(null, block);
+            callback(null, tx);
         }
     },
     cleanup: async function ({blockNumber}, callback) {
