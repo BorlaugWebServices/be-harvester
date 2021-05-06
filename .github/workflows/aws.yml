@@ -42,9 +42,9 @@
 
         - name: Checkout
           uses: actions/checkout@v2
-
+  
         - name: Setup ECR
-          run: $( aws ecr get-login --no-include-email --region ap-south-1)
+          run: aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $AWS_REPOSITORY_URL_MAYA
 
         - name: Build and tag the image
           run: docker build -t $AWS_REPOSITORY_URL_MAYA .

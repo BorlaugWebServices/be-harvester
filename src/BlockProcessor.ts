@@ -38,7 +38,7 @@ export default class BlockProcessor {
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
             // debug('New Block: %d ;', blockNumber);
-            // this.getBlockByNumber(blockNumber);
+            this.getBlockByNumber(blockNumber);
         });
     }
 
@@ -119,7 +119,7 @@ export default class BlockProcessor {
                     let hash = ex.hash.toHex();
                     let transaction = ex.toHuman({isExtended: true});
                     transaction["index"] = i;
-                    debug("Transaction : ", transaction);
+                    // debug("Transaction : ", transaction);
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
                     transaction["events"] = map[`${blockNumber}-${i}`];
