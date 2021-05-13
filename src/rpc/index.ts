@@ -76,10 +76,13 @@ export const server = jayson.server({
 
         try {
             if (!this.api) {
-                this.api = await ApiPromise.create({
+                // Create the instance
+                const api = new ApiPromise({
                     provider: new WsProvider(ADDAX_ADDRESS),
                     types: TYPES
                 });
+                // Wait until we are ready and connected
+                this.api = await api.isReady;
             }
 
             let prop = await this.api.query.identity.didInfo(did);
