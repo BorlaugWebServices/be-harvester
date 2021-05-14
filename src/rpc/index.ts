@@ -75,17 +75,14 @@ export const server = jayson.server({
         debug('getDIDState: %s', did);
 
         try {
-            if (!this.api) {
-                // Create the instance
-                const api = new ApiPromise({
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
                     provider: new WsProvider(ADDAX_ADDRESS),
                     types: TYPES
                 });
-                // Wait until we are ready and connected
-                this.api = await api.isReady;
             }
 
-            let prop = await this.api.query.identity.didInfo(did);
+            let prop = await blockProcessor.api.query.identity.didInfo(did);
             let properties = [];
             prop.toJSON().properties.forEach(prop => {
                 properties.push({
@@ -95,9 +92,9 @@ export const server = jayson.server({
             });
             // debug('didDoc: %O', properties);
 
-            let _claims = await this.api.query.identity.claimsOf(did);
+            let _claims = await blockProcessor.api.query.identity.claimsOf(did);
             for (let i = 0; i < _claims.length; i++) {
-                _claims[i] = await this.api.query.identity.claims(did, _claims[i]);
+                _claims[i] = await blockProcessor.api.query.identity.claims(did, _claims[i]);
                 _claims[i] = _claims[i].toJSON();
             }
 
@@ -136,22 +133,18 @@ export const server = jayson.server({
         debug('getTemplateSteps: RegistryId - %d, TemplateId - %d', registryid, templateid);
 
         try {
-            if (!this.api) {
-                // Create the instance
-                const api = new ApiPromise({
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
                     provider: new WsProvider(ADDAX_ADDRESS),
                     types: TYPES
                 });
-                // Wait until we are ready and connected
-                this.api = await api.isReady;
-                console.log(api.genesisHash.toHex());
             }
 
             let i = 0;
             let steps = [];
 
             while (true) {
-                let step = await this.api.query.provenance.templateSteps([registryid, templateid], i);
+                let step = await blockProcessor.api.query.provenance.templateSteps([registryid, templateid], i);
                 step = step.toHuman(true);
                 if (step.name !== '') {
                     steps.push(step);
@@ -171,24 +164,21 @@ export const server = jayson.server({
         debug('getSequenceSteps: RegistryId - %d, TemplateId - %d, SequenceId - %d', registryid, templateid, sequenceid);
 
         try {
-            if (!this.api) {
-                // Create the instance
-                const api = new ApiPromise({
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
                     provider: new WsProvider(ADDAX_ADDRESS),
                     types: TYPES
                 });
-                // Wait until we are ready and connected
-                this.api = await api.isReady;
             }
 
             let i = 0;
             let steps = [];
 
             while (true) {
-                let step = await this.api.query.provenance.sequenceSteps([registryid, templateid, sequenceid], i);
+                let step = await blockProcessor.api.query.provenance.sequenceSteps([registryid, templateid, sequenceid], i);
                 step = step.toHuman(true);
                 if (step.attested_by.id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-                    let attestor = await this.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
+                    let attestor = await blockProcessor.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
                     attestor = attestor.toHuman(true)
                     steps.push({
                         ...step,

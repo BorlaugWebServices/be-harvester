@@ -9,9 +9,11 @@ import Provenance from "./provenance";
 import {WsProvider} from '@polkadot/rpc-provider';
 
 const {ApiPromise} = require('@polkadot/api');
+const NUMBER_PATTERN = RegExp('^[0-9]*$');
+const HASH_PATTERN = RegExp('^0x([A-Fa-f0-9]{64})$');
 
 export default class BlockProcessor {
-    private api;
+    public api;
     private store;
     private latestBlockNumber = 0;
     private assetRegistry;
@@ -25,12 +27,12 @@ export default class BlockProcessor {
                 provider: new WsProvider(ADDAX_ADDRESS),
                 types: TYPES
             });
-            this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
-            this.assetRegistry = new AssetRegistry(this.store, this.api);
-            this.identity = new Identity(this.store, this.api);
-            this.audit = new Audit(this.store, this.api);
-            this.provenance = new Provenance(this.store, this.api);
         }
+        this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
+        this.assetRegistry = new AssetRegistry(this.store, this.api);
+        this.identity = new Identity(this.store, this.api);
+        this.audit = new Audit(this.store, this.api);
+        this.provenance = new Provenance(this.store, this.api);
     }
 
     async subscribeNewHeads() {
@@ -217,7 +219,7 @@ export default class BlockProcessor {
             });
 
             didObjs.forEach(did => {
-                if(did) {
+                if (did) {
                     if (did.tx_hash) {
                         calls.push(this.store.identity.saveActivity(did))
                     } else {
@@ -228,7 +230,7 @@ export default class BlockProcessor {
             });
 
             leaseObjs.forEach(ls => {
-                if(ls) {
+                if (ls) {
                     if (ls.tx_hash) {
                         calls.push(this.store.lease.saveActivity(ls))
                     } else {
@@ -239,7 +241,7 @@ export default class BlockProcessor {
             });
 
             auditObjs.forEach(adt => {
-                if(adt) {
+                if (adt) {
                     if (adt.tx_hash) {
                         calls.push(this.store.audit.saveActivity(adt))
                     } else {
@@ -250,7 +252,7 @@ export default class BlockProcessor {
             });
 
             provenanceObjs.forEach(prv => {
-                if(prv) {
+                if (prv) {
                     if (prv.tx_hash) {
                         calls.push(this.store.provenance.saveActivity(prv))
                     } else {
@@ -280,9 +282,19 @@ export default class BlockProcessor {
         }
     }
 
-    async getTxByHash(blockHash, txHash): Promise<String> {
+    async getTxByHash(blockNumberOrHash, txHash): Promise<String> {
         try {
             await this.init();
+            let blockHash = null;
+            if (NUMBER_PATTERN.test(blockNumberOrHash)) {
+                blockHash = await this.api.rpc.chain.getBlockHash(blockNumberOrHash);
+
+            } else if (HASH_PATTERN.test(blockNumberOrHash)) {
+                blockHash = blockNumberOrHash;
+            } else {
+                debug('Invalid block number/hash %s ;', blockNumberOrHash);
+                return null;
+            }
             let _block = await this.api.rpc.chain.getBlock(blockHash);
             const blockNumber = _block.block.header.number;
             let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
@@ -331,7 +343,7 @@ export default class BlockProcessor {
                 throw e;
             }
 
-            let ex = _block.block.extrinsics.find(extrinsic=> extrinsic.hash.toHex() === txHash);
+            let ex = _block.block.extrinsics.find(extrinsic => extrinsic.hash.toHex() === txHash);
 
             if (ex.isSigned) {
                 let hash = ex.hash.toHex();
@@ -367,7 +379,7 @@ export default class BlockProcessor {
                         provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));
                         break;
                 }
-            }else {
+            } else {
                 const id = `${blockNumber}-1`;
                 let inherent = ex.toHuman({isExtended: true});
                 if (inherent.method.section === 'timestamp') {
@@ -395,7 +407,7 @@ export default class BlockProcessor {
             })
 
             didObjs.forEach(did => {
-                if(did) {
+                if (did) {
                     if (did.tx_hash) {
                         calls.push(this.store.identity.saveActivity(did))
                     } else {
@@ -406,7 +418,7 @@ export default class BlockProcessor {
             });
 
             leaseObjs.forEach(ls => {
-                if(ls) {
+                if (ls) {
                     if (ls.tx_hash) {
                         calls.push(this.store.lease.saveActivity(ls))
                     } else {
@@ -417,7 +429,7 @@ export default class BlockProcessor {
             });
 
             auditObjs.forEach(adt => {
-                if(adt) {
+                if (adt) {
                     if (adt.tx_hash) {
                         calls.push(this.store.audit.saveActivity(adt))
                     } else {
@@ -428,7 +440,7 @@ export default class BlockProcessor {
             });
 
             provenanceObjs.forEach(prv => {
-                if(prv) {
+                if (prv) {
                     if (prv.tx_hash) {
                         calls.push(this.store.provenance.saveActivity(prv))
                     } else {
