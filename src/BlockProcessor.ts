@@ -27,12 +27,12 @@ export default class BlockProcessor {
                 provider: new WsProvider(ADDAX_ADDRESS),
                 types: TYPES
             });
+            this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
+            this.assetRegistry = new AssetRegistry(this.store, this.api);
+            this.identity = new Identity(this.store, this.api);
+            this.audit = new Audit(this.store, this.api);
+            this.provenance = new Provenance(this.store, this.api);
         }
-        this.store = await Store.DataStore(DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, TTL_MIN, TTL_MAX);
-        this.assetRegistry = new AssetRegistry(this.store, this.api);
-        this.identity = new Identity(this.store, this.api);
-        this.audit = new Audit(this.store, this.api);
-        this.provenance = new Provenance(this.store, this.api);
     }
 
     async subscribeNewHeads() {
