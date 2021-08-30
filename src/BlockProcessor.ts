@@ -87,6 +87,7 @@ export default class BlockProcessor {
 
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
+                    debug(events[i])
                     const {event, phase} = events[i];
                     const id = `${blockNumber}-${i}`;
                     let _event = {
@@ -116,6 +117,7 @@ export default class BlockProcessor {
 
             //Save extrinsics separately
             for (let i = 0; i < _block.block.extrinsics.length; i++) {
+                debug(_block.block.extrinsics[i])
                 let ex = _block.block.extrinsics[i];
                 if (ex.isSigned) {
                     let hash = ex.hash.toHex();
