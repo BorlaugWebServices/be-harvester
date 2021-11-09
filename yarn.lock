@@ -561,6 +561,7 @@
   "version" "1.5.1"
 
 "be-datastore@git+https://github.com/BorlaugWebServices/be-datastore.git#sandbox":
+  "integrity" "sha512-WWLCXrLM48ccJT4CSHYIVB9CgW17Sy78qH64HBh6/12a4/3Lu9LfxhcRjzvxz5acxeCgkL9Nh6Stz/6poa0S2w=="
   "resolved" "git+ssh://git@github.com/BorlaugWebServices/be-datastore.git#78ec570392526c01475dd3dc95de5de807e5b6dd"
   "version" "1.0.0"
   dependencies:
