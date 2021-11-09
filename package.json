@@ -23,8 +23,8 @@
         "typescript": "^3.8.2"
     },
     "dependencies": {
-        "@polkadot/api": "1.34.1",
-        "@types/debug": "^4.1.5",
+        "@polkadot/api": "4.0.1",
+        "@types/debug": "4.1.7",
         "be-datastore": "git+https://github.com/BorlaugWebServices/be-datastore.git#sandbox",
         "debug": "^4.1.1",
         "dotenv": "^8.2.0",
