@@ -82,39 +82,29 @@ export const server = jayson.server({
                 });
             }
 
-            let prop = await blockProcessor.api.query.identity.didInfo(did);
+            let all_entries = await blockProcessor.api.query.identity.didDocumentProperties.entries(did);
             let properties = [];
-            prop.toJSON().properties.forEach(prop => {
-                properties.push({
-                    name: hexToString(prop.name),
-                    fact: getPropertyValue(prop.fact),
-                });
+            all_entries.forEach(([{ args: [did, hash] }, value]) => {
+                debug("Properties", JSON.stringify(value.toHuman()));
+                let property = value.toHuman();
+                    properties.push({
+                        name: property.name,
+                        fact: getPropertyValue(property.fact),
+                    });
             });
-            // debug('didDoc: %O', properties);
+            debug('didDoc: %O', properties);
 
-            let _claims = await blockProcessor.api.query.identity.claimsOf(did);
-            for (let i = 0; i < _claims.length; i++) {
-                _claims[i] = await blockProcessor.api.query.identity.claims(did, _claims[i]);
-                _claims[i] = _claims[i].toJSON();
-            }
-
+            let all_claim_entries = await blockProcessor.api.query.identity.claims.entries(did);
             let claims = [];
-            _claims.forEach(_claim => {
-                let claim = {
-                    ..._claim,
-                    description: hexToString(_claim.description),
-                    statements: []
-                }
-                _claim.statements.forEach(st => {
-                    claim.statements.push({
-                        name: hexToString(st.name),
-                        fact: getPropertyValue(st.fact),
-                        for_issuer: st.for_issuer
-                    })
-                });
-                claims.push(claim);
+            all_claim_entries.forEach(([{ args: [did, claim_id] }, value]) => {
+                let claim = value.toHuman();
+                claim.statements = claim.statements.map(s=> ({
+                    ...s,
+                    fact: getPropertyValue(s.fact)
+                }))
+                    claims.push(claim);
             });
-            // debug('claims: %O', claims);
+            debug('Claims: %O', claims);
 
             let didDoc = {
                 did,
@@ -124,7 +114,6 @@ export const server = jayson.server({
 
             callback(null, didDoc);
         } catch (e) {
-            //console.error(e);
             debug(e);
             callback(null, false);
         }
@@ -200,7 +189,7 @@ export const server = jayson.server({
 
 function getPropertyValue(fact) {
     if (fact.Text) {
-        return hexToString(fact.Text);
+        return fact.Text;
     } else if (fact.Bool) {
         return fact.Bool
     } else if (fact.U8) {

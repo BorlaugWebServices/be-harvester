@@ -30,12 +30,9 @@ export default class Identity {
 
             if (events.length > 0) {
                 let event = events[0];
-                let subject = event.event.data[0].toString();
-                let controller = event.event.data[1].toString();
-                let did = event.event.data[2].id.toString();
-                let properties = this.getProperties(transaction.method.args[1]);
-                let claims = [];
-                let attestations = [];
+                let subject = event.event.data[1].toString();
+                let controller = event.event.data[2].toString();
+                let did = event.event.data[3].id.toString();
 
                 return {
                     did,
@@ -57,9 +54,9 @@ export default class Identity {
 
             if (events.length > 0) {
                 let event = events[0];
-                let subject = event.event.data[0].toString();
-                let controller = event.event.data[1].toString();
-                let did = event.event.data[2].id.toString();
+                let subject = event.event.data[1].toString();
+                let controller = event.event.data[2].toString();
+                let did = event.event.data[3].id.toString();
 
                 return {
                     did,
@@ -75,7 +72,7 @@ export default class Identity {
         } else if (['updateDid', 'replaceDid', 'manageControllers', 'authorizeClaimConsumers', 'revokeClaimConsumers',
             'authorizeClaimIssuers', 'revokeClaimIssuers', 'createCatalog', 'removeCatalog'].includes(transaction.method.method)) {
             debug(transaction.method.method);
-            let did = transaction.method.args[0].id;
+            let did = transaction.method.args[1].id;
 
             return {
                 did,
@@ -93,9 +90,9 @@ export default class Identity {
             debug(transaction.method.method);
             let dids = [];
 
-            transaction.method.args[2].forEach(obj => {
+            transaction.method.args[1].forEach(obj => {
                 dids.push({
-                    did: obj[0].id,
+                    did: obj.id,
                     tx_hash: transaction.hash
                 })
             });
