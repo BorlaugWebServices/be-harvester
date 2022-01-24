@@ -114,6 +114,7 @@ export default class BlockProcessor {
                 debug("Can't get events of %d (%s), Error : %O ;", blockNumber, blockHash, e);
                 throw e;
             }
+            debug("BlockProcessor - evnObjs: ", evnObjs);
 
             //Save extrinsics separately
             for (let i = 0; i < _block.block.extrinsics.length; i++) {
@@ -131,6 +132,7 @@ export default class BlockProcessor {
                     _transactions.push(hash);
                     txObjs.push(transaction);
 
+                    debug("BlockProcessor - transaction.method.section: ", transaction.method.section);
                     switch (transaction.method.section) {
                         case 'assetRegistry':
                             leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
@@ -145,8 +147,15 @@ export default class BlockProcessor {
                                 didObjs.push(didObj);
                             }
                             break;
-                        case 'audits':
-                            auditObjs.push(await this.audit.process(transaction, evnObjs, blockNumber, blockHash));
+                        case 'groups':
+                            let events = _.filter(evnObjs, (e) => {
+                                return (['AuditCreated', 'AuditRemoved', 'AuditAccepted', 'AuditRejected', 'AuditorsAssigned', 'AuditStarted', 'AuditCompleted', 'AuditLinked', 'AuditUnlinked',
+                                    'ObservationCreated', 'EvidenceAttached', 'EvidenceLinked', 'EvidenceUnlinked', 'EvidenceDeleted', 'EvidenceDeleteFailed']).includes(e.meta.name.toString());
+                            });
+                            debug("BlockProcessor - events: ", events);
+                            if (events.length > 0) {
+                                auditObjs.push(await this.audit.process(transaction, events, blockNumber, blockHash));
+                            }
                             break;
                         case 'provenance':
                             provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));

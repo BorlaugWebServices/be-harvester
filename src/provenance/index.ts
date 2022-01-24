@@ -17,16 +17,18 @@ export default class Provenance {
      * checks transaction with `provenance` module and creates/updates a provenance object
      */
     async process(transaction, _events, blockNumber, blockHash) {
+        debug("In Provenance -  process:", transaction, _events);
         if (transaction.method.section !== 'provenance') {
             throw new Error("Not an provenance transaction");
         }
 
-        if (transaction.method.method === 'createSequence') {
-            debug('createSequence');
+        if (transaction.method.method === 'createProcess') {
+            debug('createProcess');
 
             let events = _.filter(_events, (e) => {
-                return transaction.events.includes(e.id) && e.meta.name.toString() === 'SequenceCreated';
+                return transaction.events.includes(e.id) && e.meta.name.toString() === 'ProcessCreated';
             });
+            debug("In Provenance - events: ", events)
 
             if (events.length > 0) {
                 let event = events[0];
@@ -47,9 +49,9 @@ export default class Provenance {
                     extrinsicHash: transaction.hash
                 }
             } else {
-                throw new Error(`SequenceCreated Event not found`);
+                throw new Error(`ProcessCreated Event not found`);
             }
-        } else if (transaction.method.method === 'createSequenceStep') {
+        } else if (transaction.method.method === 'createProcessStep') {
             debug(transaction.method.method);
             let sequence_id = Number(transaction.method.args[4]);
 
@@ -57,7 +59,7 @@ export default class Provenance {
                 sequence_id,
                 tx_hash: transaction.hash
             }
-        } else if (['updateSequence', 'removeSequence'].includes(transaction.method.method)) {
+        } else if (['updateProcess', 'removeProcess'].includes(transaction.method.method)) {
             debug(transaction.method.method);
             let sequence_id = Number(transaction.method.args[2]);
 

@@ -1,7 +1,6 @@
 const debug = require("debug")("be-harvester:identity");
 
 import _ from "lodash";
-import {hexToString, isHex} from '@polkadot/util';
 
 export default class Identity {
 
@@ -69,7 +68,7 @@ export default class Identity {
             } else {
                 throw new Error(`Registered Event not found`);
             }
-        } else if (['updateDid', 'replaceDid', 'manageControllers', 'authorizeClaimConsumers', 'revokeClaimConsumers',
+        } else if (['addDidProperties', 'removeDidProperties', 'manageControllers', 'authorizeClaimConsumers', 'revokeClaimConsumers',
             'authorizeClaimIssuers', 'revokeClaimIssuers', 'createCatalog', 'removeCatalog'].includes(transaction.method.method)) {
             debug(transaction.method.method);
             let did = transaction.method.args[1].id;
@@ -102,7 +101,7 @@ export default class Identity {
             debug(transaction.method.method);
             let dids = [];
 
-            transaction.method.args[2].forEach(obj => {
+            transaction.method.args[1].forEach(obj => {
                 dids.push({
                     did: obj.id,
                     tx_hash: transaction.hash
@@ -115,32 +114,5 @@ export default class Identity {
             debug("Method not recognized");
         }
 
-    }
-
-    private getProperties(args) {
-        let properties = [];
-
-        if(args && Array.isArray(args)){
-            args.forEach(obj => {
-                // debug(obj);
-                let name = isHex(obj.name)?hexToString(obj.name):obj.name;
-                let fact = null;
-
-                if (obj.fact.Text) {
-                    fact = isHex(obj.fact.Text)?hexToString(obj.fact.Text):obj.fact.Text;
-                } else if (obj.fact.Bool !== null) {
-                    fact = obj.fact.Bool;
-                } else if (obj.fact.U8) {
-                    fact = obj.fact.U8;
-                }
-                //debug("property :", {name, fact});
-                properties.push({
-                    name,
-                    fact
-                })
-            });
-        }
-
-        return properties;
     }
 }
