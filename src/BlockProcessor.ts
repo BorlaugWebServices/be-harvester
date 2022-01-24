@@ -5,6 +5,7 @@ import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, 
 import AssetRegistry from "./asset-registry";
 import Identity from "./identity";
 import Audit from "./audit";
+import Proposal from "./proposals";
 import Provenance from "./provenance";
 import {WsProvider} from '@polkadot/rpc-provider';
 
@@ -20,6 +21,7 @@ export default class BlockProcessor {
     private identity;
     private audit;
     private provenance;
+    private proposal;
 
     async init() {
         if (!this.api) {
@@ -32,6 +34,7 @@ export default class BlockProcessor {
             this.identity = new Identity(this.store, this.api);
             this.audit = new Audit(this.store, this.api);
             this.provenance = new Provenance(this.store, this.api);
+            this.proposal = new Proposal(this.store, this.api);
         }
     }
 
@@ -80,7 +83,7 @@ export default class BlockProcessor {
             let map = {};
 
             let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [];
+            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -114,7 +117,7 @@ export default class BlockProcessor {
                 debug("Can't get events of %d (%s), Error : %O ;", blockNumber, blockHash, e);
                 throw e;
             }
-            debug("BlockProcessor - evnObjs: ", evnObjs);
+            // debug("BlockProcessor - evnObjs: ", evnObjs);
 
             //Save extrinsics separately
             for (let i = 0; i < _block.block.extrinsics.length; i++) {
@@ -148,13 +151,22 @@ export default class BlockProcessor {
                             }
                             break;
                         case 'groups':
-                            let events = _.filter(evnObjs, (e) => {
+                            let audit_events = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
                                 return (['AuditCreated', 'AuditRemoved', 'AuditAccepted', 'AuditRejected', 'AuditorsAssigned', 'AuditStarted', 'AuditCompleted', 'AuditLinked', 'AuditUnlinked',
                                     'ObservationCreated', 'EvidenceAttached', 'EvidenceLinked', 'EvidenceUnlinked', 'EvidenceDeleted', 'EvidenceDeleteFailed']).includes(e.meta.name.toString());
                             });
-                            debug("BlockProcessor - events: ", events);
-                            if (events.length > 0) {
-                                auditObjs.push(await this.audit.process(transaction, events, blockNumber, blockHash));
+                            // debug("BlockProcessor - audit events: ", audit_events);
+                            if (audit_events.length > 0) {
+                                auditObjs.push(await this.audit.process(transaction, audit_events, blockNumber, blockHash));
+                            }
+
+                            let proposal_events = _.filter(evnObjs, (e) => {
+                                return (['Proposed', 'Voted', 'Approved', 'Disapproved', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(e.meta.name.toString());
+                            });
+                            // debug("BlockProcessor - proposal events: ", proposal_events);
+                            if (proposal_events.length > 0) {
+                                proposalObjs.push(await this.proposal.process(transaction, proposal_events, blockNumber, blockHash));
                             }
                             break;
                         case 'provenance':
@@ -258,6 +270,17 @@ export default class BlockProcessor {
                     } else {
                         adt.timestamp = timestamp;
                         calls.push(this.store.audit.save(adt));
+                    }
+                }
+            });
+
+            proposalObjs.forEach(prp => {
+                if (prp) {
+                    if (prp.tx_hash) {
+                        calls.push(this.store.proposal.saveActivity(prp))
+                    } else {
+                        prp.timestamp = timestamp;
+                        calls.push(this.store.proposal.save(prp));
                     }
                 }
             });

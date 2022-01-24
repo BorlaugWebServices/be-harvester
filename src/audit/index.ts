@@ -35,6 +35,13 @@ export default class Audit {
                 blockHash,
                 extrinsicHash: transaction.hash
             }
+        } else if ((['AuditLinked', 'AuditUnlinked']).includes(event.meta.name.toString())) {
+            let audit_id = Number(event.event.data[1].toString());
+
+            return {
+                audit_id,
+                tx_hash: transaction.hash
+            }
         } else {
             debug(transaction.method.method);
             let audit_id = Number(event.event.data[2].toString());
