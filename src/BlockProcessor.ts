@@ -1,5 +1,3 @@
-
-
 const debug = require("debug")("be-harvester:BlockProcessor");
 const _ = require("lodash");
 
@@ -47,7 +45,7 @@ export default class BlockProcessor {
         await this.init();
         await this.api.rpc.chain.subscribeNewHeads(header => {
             const blockNumber = this.toJson(header.number);
-            // debug('New Block: %d ;', blockNumber);
+            debug('New Block: %d ;', blockNumber);
             this.getBlockByNumber(blockNumber);
         });
     }
@@ -170,9 +168,9 @@ export default class BlockProcessor {
                             if (proposal_events.length > 0) {
                                 proposalObjs.push(await this.proposal.process(transaction, proposal_events, blockNumber, blockHash));
                             }
-                            if(audit_events.length === 0 && proposal_events.length === 0){
-                                groupObjs.push(await this.group.process(transaction, evnObjs, blockNumber, blockHash));
-                            }
+                            // if(audit_events.length === 0 && proposal_events.length === 0){
+                            groupObjs.push(await this.group.process(transaction, evnObjs, blockNumber, blockHash));
+                            // }
                             break;
                         case 'provenance':
                             provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));
@@ -194,7 +192,7 @@ export default class BlockProcessor {
                 }
             }
 
-            debug('groups : %s ;',JSON.stringify(groupObjs));
+            debug('groups : %s ;', JSON.stringify(groupObjs));
 
             //Save logs separately
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {

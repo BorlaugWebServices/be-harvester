@@ -197,7 +197,6 @@ export const server = jayson.server({
             }
 
             let group = await blockProcessor.api.query.groups.groups(group_id);
-            debug('Group: %O', group.toHuman());
             let all_entries = await blockProcessor.api.query.groups.groupMembers.entries(group_id);
             let group_members = [];
             all_entries.forEach(([{args: [groupid, member_account]}, value]) => {
@@ -207,11 +206,9 @@ export const server = jayson.server({
                     weight: weight,
                 });
             });
-            debug('Group members: %O', group_members);
-            callback(null, {
-                group: group.toHuman(),
-                members: group_members
-            });
+            group = group.toHuman();
+            group['members'] = group_members;
+            callback(null, group);
         } catch (e) {
             debug(e);
             callback(null, false);

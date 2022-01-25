@@ -44,21 +44,19 @@ export default class Group {
             } else {
                 throw new Error(`GroupCreated Event not found`);
             }
-        } else if (['updateGroup', 'createSubGroup', 'updateSubGroup', 'removeGroup', 'removeSubGroup', 'execute'].includes(transaction.method.method)) {
+        } else {
             let events = _.filter(_events, (e) => {
                 return (['GroupUpdated', 'GroupRemoved', 'SubGroupCreated', 'SubGroupUpdated', 'SubGroupRemoved', 'GroupMembersExceeded', 'Executed']).includes(e.meta.name.toString());
             });
-            let group_id = null;
             if (events.length > 0) {
-                group_id = Number(events[0].event.data[0].toString());
+                let group_id = Number(events[0].event.data[0].toString());
+                return {
+                    group_id,
+                    tx_hash: transaction.hash
+                }
+            }else {
+                debug("Not a group activity");
             }
-            return {
-                group_id,
-                tx_hash: transaction.hash
-            }
-        } else {
-            // throw new Error("Method not recognized");
-            debug("Method not recognized");
         }
     }
 }
