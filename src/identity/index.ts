@@ -15,7 +15,7 @@ export default class Identity {
     /**
      * checks transaction with `identity` module and creates/updates a identity object
      */
-    async process(transaction, _events, blockNumber, blockHash) {
+        async process(transaction, _events, blockNumber, blockHash) {
         if (transaction.method.section !== 'identity') {
             throw new Error("Not an identity transaction");
         }

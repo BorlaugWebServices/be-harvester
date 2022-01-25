@@ -1,8 +1,5 @@
 const debug = require("debug")("be-harvester:audit");
 
-import _ from "lodash";
-import {hexToString, isHex} from '@polkadot/util';
-
 export default class Audit {
 
     private store;

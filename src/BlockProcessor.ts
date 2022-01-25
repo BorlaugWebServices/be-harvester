@@ -1,3 +1,5 @@
+
+
 const debug = require("debug")("be-harvester:BlockProcessor");
 const _ = require("lodash");
 
@@ -6,6 +8,7 @@ import AssetRegistry from "./asset-registry";
 import Identity from "./identity";
 import Audit from "./audit";
 import Proposal from "./proposals";
+import Group from "./group";
 import Provenance from "./provenance";
 import {WsProvider} from '@polkadot/rpc-provider';
 
@@ -22,6 +25,7 @@ export default class BlockProcessor {
     private audit;
     private provenance;
     private proposal;
+    private group;
 
     async init() {
         if (!this.api) {
@@ -35,6 +39,7 @@ export default class BlockProcessor {
             this.audit = new Audit(this.store, this.api);
             this.provenance = new Provenance(this.store, this.api);
             this.proposal = new Proposal(this.store, this.api);
+            this.group = new Group(this.store, this.api);
         }
     }
 
@@ -83,7 +88,7 @@ export default class BlockProcessor {
             let map = {};
 
             let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [];
+            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [], groupObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -156,17 +161,17 @@ export default class BlockProcessor {
                                 return (['AuditCreated', 'AuditRemoved', 'AuditAccepted', 'AuditRejected', 'AuditorsAssigned', 'AuditStarted', 'AuditCompleted', 'AuditLinked', 'AuditUnlinked',
                                     'ObservationCreated', 'EvidenceAttached', 'EvidenceLinked', 'EvidenceUnlinked', 'EvidenceDeleted', 'EvidenceDeleteFailed']).includes(e.meta.name.toString());
                             });
-                            // debug("BlockProcessor - audit events: ", audit_events);
                             if (audit_events.length > 0) {
                                 auditObjs.push(await this.audit.process(transaction, audit_events, blockNumber, blockHash));
                             }
-
                             let proposal_events = _.filter(evnObjs, (e) => {
                                 return (['Proposed', 'Voted', 'Approved', 'Disapproved', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(e.meta.name.toString());
                             });
-                            // debug("BlockProcessor - proposal events: ", proposal_events);
                             if (proposal_events.length > 0) {
                                 proposalObjs.push(await this.proposal.process(transaction, proposal_events, blockNumber, blockHash));
+                            }
+                            if(audit_events.length === 0 && proposal_events.length === 0){
+                                groupObjs.push(await this.group.process(transaction, evnObjs, blockNumber, blockHash));
                             }
                             break;
                         case 'provenance':
@@ -189,7 +194,7 @@ export default class BlockProcessor {
                 }
             }
 
-            //debug('identities : %s ;',JSON.stringify(didObjs[0]));
+            debug('groups : %s ;',JSON.stringify(groupObjs));
 
             //Save logs separately
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
@@ -270,6 +275,17 @@ export default class BlockProcessor {
                     } else {
                         adt.timestamp = timestamp;
                         calls.push(this.store.audit.save(adt));
+                    }
+                }
+            });
+
+            groupObjs.forEach(grp => {
+                if (grp) {
+                    if (grp.tx_hash) {
+                        calls.push(this.store.group.saveActivity(grp))
+                    } else {
+                        grp.timestamp = timestamp;
+                        calls.push(this.store.group.save(grp));
                     }
                 }
             });

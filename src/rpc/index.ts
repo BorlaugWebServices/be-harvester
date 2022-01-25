@@ -84,25 +84,25 @@ export const server = jayson.server({
 
             let all_entries = await blockProcessor.api.query.identity.didDocumentProperties.entries(did);
             let properties = [];
-            all_entries.forEach(([{ args: [did, hash] }, value]) => {
+            all_entries.forEach(([{args: [did, hash]}, value]) => {
                 debug("Properties", JSON.stringify(value.toHuman()));
                 let property = value.toHuman();
-                    properties.push({
-                        name: property.name,
-                        fact: getPropertyValue(property.fact),
-                    });
+                properties.push({
+                    name: property.name,
+                    fact: getPropertyValue(property.fact),
+                });
             });
             debug('didDoc: %O', properties);
 
             let all_claim_entries = await blockProcessor.api.query.identity.claims.entries(did);
             let claims = [];
-            all_claim_entries.forEach(([{ args: [did, claim_id] }, value]) => {
+            all_claim_entries.forEach(([{args: [did, claim_id]}, value]) => {
                 let claim = value.toHuman();
-                claim.statements = claim.statements.map(s=> ({
+                claim.statements = claim.statements.map(s => ({
                     ...s,
                     fact: getPropertyValue(s.fact)
                 }))
-                    claims.push(claim);
+                claims.push(claim);
             });
             debug('Claims: %O', claims);
 
@@ -180,6 +180,38 @@ export const server = jayson.server({
             }
 
             callback(null, steps);
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
+    },
+    getGroup: async function ({group_id}, callback) {
+        debug('getGroup: %s', group_id);
+
+        try {
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let group = await blockProcessor.api.query.groups.groups(group_id);
+            debug('Group: %O', group.toHuman());
+            let all_entries = await blockProcessor.api.query.groups.groupMembers.entries(group_id);
+            let group_members = [];
+            all_entries.forEach(([{args: [groupid, member_account]}, value]) => {
+                let weight = value.toHuman();
+                group_members.push({
+                    account: member_account,
+                    weight: weight,
+                });
+            });
+            debug('Group members: %O', group_members);
+            callback(null, {
+                group: group.toHuman(),
+                members: group_members
+            });
         } catch (e) {
             debug(e);
             callback(null, false);
