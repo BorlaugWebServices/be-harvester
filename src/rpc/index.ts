@@ -133,9 +133,10 @@ export const server = jayson.server({
             let steps = [];
 
             while (true) {
-                let step = await blockProcessor.api.query.provenance.templateSteps([registryid, templateid], i);
+                let step = await blockProcessor.api.query.provenance.definitionSteps([registryid, templateid], i);
                 step = step.toHuman(true);
-                if (step.name !== '') {
+                debug("In Provenance RPC - definitionSteps", step);
+                if (step) {
                     steps.push(step);
                     i++;
                 } else {
@@ -164,15 +165,13 @@ export const server = jayson.server({
             let steps = [];
 
             while (true) {
-                let step = await blockProcessor.api.query.provenance.sequenceSteps([registryid, templateid, sequenceid], i);
+                let step = await blockProcessor.api.query.provenance.processSteps([registryid, templateid, sequenceid], i);
                 step = step.toHuman(true);
-                if (step.attested_by.id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-                    let attestor = await blockProcessor.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
-                    attestor = attestor.toHuman(true)
-                    steps.push({
-                        ...step,
-                        attestor
-                    });
+                debug("In Provenance RPC - ProcessSteps", step);
+                if (step) {
+                    // let attestor = await blockProcessor.api.query.provenance.attestors([registryid, templateid, i], step.attested_by.id);
+                    // attestor = attestor.toHuman(true)
+                    steps.push(step);
                     i++;
                 } else {
                     break;

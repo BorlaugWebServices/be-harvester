@@ -221,6 +221,7 @@ export default class BlockProcessor {
             };
 
             evnObjs.forEach(evn => {
+                debug(evn)
                 evn.timestamp = timestamp;
                 evn.significant = isSignificantBlock;
 
@@ -300,6 +301,7 @@ export default class BlockProcessor {
             });
 
             provenanceObjs.forEach(prv => {
+                debug(prv)
                 if (prv) {
                     if (prv.tx_hash) {
                         calls.push(this.store.provenance.saveActivity(prv))

@@ -17,7 +17,7 @@ export default class Provenance {
      * checks transaction with `provenance` module and creates/updates a provenance object
      */
     async process(transaction, _events, blockNumber, blockHash) {
-        debug("In Provenance -  process:", transaction, _events);
+        debug("In Provenance -  process:", transaction.method.method);
         if (transaction.method.section !== 'provenance') {
             throw new Error("Not an provenance transaction");
         }
@@ -28,15 +28,18 @@ export default class Provenance {
             let events = _.filter(_events, (e) => {
                 return transaction.events.includes(e.id) && e.meta.name.toString() === 'ProcessCreated';
             });
-            debug("In Provenance - events: ", events)
+            // debug("In Provenance - events: ", events)
 
             if (events.length > 0) {
                 let event = events[0];
-                let registry = event.event.data[0];
-                let template = event.event.data[1];
-                let id = event.event.data[2];
-                let name = transaction.method.args[3];
-                let sequence_creator = transaction.method.args[0].id;
+                debug("In Provenance - events: ", event.event.data.toHuman())
+                debug("In Provenance - transaction: ", transaction.method.args)
+                let registry = Number(event.event.data[2].toString());
+                let template = Number(event.event.data[3].toString());
+                let id = Number(event.event.data[4].toString());
+                let name = transaction.method.args[2].toString();
+                let sequence_creator = event.event.data[0].toString();
+                let sequence_creator_group = event.event.data[1].toString();
 
                 return {
                     id,
@@ -44,6 +47,7 @@ export default class Provenance {
                     registry,
                     template,
                     sequence_creator,
+                    sequence_creator_group,
                     blockNumber,
                     blockHash,
                     extrinsicHash: transaction.hash
@@ -51,9 +55,9 @@ export default class Provenance {
             } else {
                 throw new Error(`ProcessCreated Event not found`);
             }
-        } else if (transaction.method.method === 'createProcessStep') {
+        } else if (transaction.method.method === 'attestProcessStep') {
             debug(transaction.method.method);
-            let sequence_id = Number(transaction.method.args[4]);
+            let sequence_id = Number(transaction.method.args[2]);
 
             return {
                 sequence_id,
