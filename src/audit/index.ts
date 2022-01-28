@@ -14,9 +14,8 @@ export default class Audit {
      * checks transaction with `audit` module and creates/updates a identity object
      */
     async process(transaction, events, blockNumber, blockHash) {
-        debug("In Audit - process: ", JSON.stringify(transaction));
         let event = events[0];
-        debug("In Audit - events: ", JSON.stringify(event));
+        debug("In Audit - events: ", event.event.data.toHuman());
         if (event.meta.name.toString() === 'AuditCreated') {
             let id = event.event.data[2].toString();
             let auditStorage = await this.api.query.audits.audits(id);

@@ -93,7 +93,6 @@ export default class BlockProcessor {
 
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
-                    debug(this.toJson(events[i]));
                     const {event, phase} = events[i];
                     const id = `${blockNumber}-${i}`;
                     let _event = {
@@ -130,7 +129,6 @@ export default class BlockProcessor {
                     let hash = ex.hash.toHex();
                     let transaction = ex.toHuman({isExtended: true});
                     transaction["index"] = i;
-                    // debug("Transaction : ", transaction);
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
                     transaction["events"] = map[`${blockNumber}-${i}`];
@@ -139,12 +137,17 @@ export default class BlockProcessor {
                     txObjs.push(transaction);
 
                     debug("BlockProcessor - transaction.method.section: ", transaction.method.section);
+                    debug("BlockProcessor - transaction.method.method: ", transaction.method.method);
                     switch (transaction.method.section) {
                         case 'assetRegistry':
                             leaseObjs.push(await this.assetRegistry.process(transaction, evnObjs, blockNumber, blockHash));
                             break;
                         case 'identity':
-                            let didObj = await this.identity.process(transaction, evnObjs, blockNumber, blockHash);
+                            let identity_events = _.filter(evnObjs, (e) => {
+                                return (['Registered', 'DidPropertiesAdded', 'DidPropertiesRemoved', 'DidControllerUpdated', 'ClaimConsumersAuthorized', 'ClaimConsumersRevoked', 'ClaimIssuersAuthorized', 'ClaimIssuersRevoked', 'ClaimMade',
+                                    'ClaimAttested', 'ClaimAttestationRevoked', 'CatalogCreated', 'CatalogRemoved', 'CatalogDidsAdded', 'CatalogDidsRemoved']).includes(e.meta.name.toString());
+                            });
+                            let didObj = await this.identity.process(transaction, identity_events, blockNumber, blockHash);
                             if (Array.isArray(didObj)) {
                                 didObj.forEach(obj => {
                                     didObjs.push(obj);
@@ -162,6 +165,24 @@ export default class BlockProcessor {
                             if (audit_events.length > 0) {
                                 auditObjs.push(await this.audit.process(transaction, audit_events, blockNumber, blockHash));
                             }
+
+                            let identity_events_from_groups = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['Registered', 'DidPropertiesAdded', 'DidPropertiesRemoved', 'DidControllerUpdated', 'ClaimConsumersAuthorized', 'ClaimConsumersRevoked', 'ClaimIssuersAuthorized', 'ClaimIssuersRevoked', 'ClaimMade',
+                                    'ClaimAttested', 'ClaimAttestationRevoked', 'CatalogCreated', 'CatalogRemoved', 'CatalogDidsAdded', 'CatalogDidsRemoved']).includes(e.meta.name.toString());
+                            });
+                            if (identity_events_from_groups.length > 0) {
+                                didObjs.push(await this.identity.process(transaction, identity_events_from_groups, blockNumber, blockHash));
+                            }
+
+                            let provenance_events_from_groups = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
+                            });
+                            if (provenance_events_from_groups.length > 0) {
+                                provenanceObjs.push(await this.provenance.process(transaction, provenance_events_from_groups, blockNumber, blockHash));
+                            }
+
                             let proposal_events = _.filter(evnObjs, (e) => {
                                 return (['Proposed', 'Voted', 'Approved', 'Disapproved', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(e.meta.name.toString());
                             });
@@ -173,7 +194,13 @@ export default class BlockProcessor {
                             // }
                             break;
                         case 'provenance':
-                            provenanceObjs.push(await this.provenance.process(transaction, evnObjs, blockNumber, blockHash));
+                            let provenance_events = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
+                            });
+                            if(provenance_events.length>0) {
+                                provenanceObjs.push(await this.provenance.process(transaction, provenance_events, blockNumber, blockHash));
+                            }
                             break;
                     }
                 } else {
@@ -191,8 +218,6 @@ export default class BlockProcessor {
                     inhObjs.push(inherent);
                 }
             }
-
-            debug('groups : %s ;', JSON.stringify(groupObjs));
 
             //Save logs separately
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
@@ -221,7 +246,6 @@ export default class BlockProcessor {
             };
 
             evnObjs.forEach(evn => {
-                debug(evn)
                 evn.timestamp = timestamp;
                 evn.significant = isSignificantBlock;
 
@@ -230,7 +254,7 @@ export default class BlockProcessor {
 
             txObjs.forEach(tx => {
                 tx.timestamp = timestamp;
-                tx.signer = tx.signer? tx.signer.Id : null;
+                tx.signer = tx.signer ? tx.signer.Id : null;
                 calls.push(this.store.transaction.save(tx));
             });
 
@@ -454,7 +478,7 @@ export default class BlockProcessor {
 
             txObjs.forEach(tx => {
                 tx.timestamp = timestamp;
-                tx.signer = tx.signer? tx.signer.Id : null;
+                tx.signer = tx.signer ? tx.signer.Id : null;
                 calls.push(this.store.transaction.save(tx));
             })
 
