@@ -230,6 +230,7 @@ export default class BlockProcessor {
 
             txObjs.forEach(tx => {
                 tx.timestamp = timestamp;
+                tx.signer = tx.signer? tx.signer.Id : null;
                 calls.push(this.store.transaction.save(tx));
             });
 
@@ -453,6 +454,7 @@ export default class BlockProcessor {
 
             txObjs.forEach(tx => {
                 tx.timestamp = timestamp;
+                tx.signer = tx.signer? tx.signer.Id : null;
                 calls.push(this.store.transaction.save(tx));
             })
 
