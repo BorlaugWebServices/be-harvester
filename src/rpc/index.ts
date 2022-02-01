@@ -212,6 +212,24 @@ export const server = jayson.server({
             debug(e);
             callback(null, false);
         }
+    },
+    getBalance: async function ({address}, callback) {
+        debug('getBalance: %s', address);
+
+        try {
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let { data: { free: previousFree }, nonce: previousNonce } =  await blockProcessor.api.query.system.account(address);
+            callback(null, previousFree.toString());
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
     }
 });
 
