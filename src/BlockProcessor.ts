@@ -86,7 +86,7 @@ export default class BlockProcessor {
             let map = {};
 
             let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [], groupObjs = [];
+            let leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [], groupObjs = [], catalogObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -147,13 +147,16 @@ export default class BlockProcessor {
                                 return (['Registered', 'DidPropertiesAdded', 'DidPropertiesRemoved', 'DidControllerUpdated', 'ClaimConsumersAuthorized', 'ClaimConsumersRevoked', 'ClaimIssuersAuthorized', 'ClaimIssuersRevoked', 'ClaimMade',
                                     'ClaimAttested', 'ClaimAttestationRevoked', 'CatalogCreated', 'CatalogRemoved', 'CatalogDidsAdded', 'CatalogDidsRemoved']).includes(e.meta.name.toString());
                             });
-                            let didObj = await this.identity.process(transaction, identity_events, blockNumber, blockHash);
-                            if (Array.isArray(didObj)) {
-                                didObj.forEach(obj => {
-                                    didObjs.push(obj);
-                                })
-                            } else {
-                                didObjs.push(didObj);
+                            if(identity_events.length > 0) {
+                                let didObj = await this.identity.process(transaction, identity_events, blockNumber, blockHash);
+                                catalogObjs.push(await this.identity.getCatalogObj(transaction, identity_events, blockNumber, blockHash));
+                                if (Array.isArray(didObj)) {
+                                    didObj.forEach(obj => {
+                                        didObjs.push(obj);
+                                    })
+                                } else {
+                                    didObjs.push(didObj);
+                                }
                             }
                             break;
                         case 'groups':
@@ -173,6 +176,7 @@ export default class BlockProcessor {
                             });
                             if (identity_events_from_groups.length > 0) {
                                 didObjs.push(await this.identity.process(transaction, identity_events_from_groups, blockNumber, blockHash));
+                                catalogObjs.push(await this.identity.getCatalogObj(transaction, identity_events_from_groups, blockNumber, blockHash));
                             }
 
                             let provenance_events_from_groups = _.filter(evnObjs, (e) => {
@@ -268,6 +272,17 @@ export default class BlockProcessor {
                 log.significant = isSignificantBlock;
 
                 calls.push(this.store.log.save(log));
+            });
+
+            catalogObjs.forEach(catalog => {
+                if (catalog) {
+                    if (catalog.tx_hash) {
+                        calls.push(this.store.identity.saveCatalogActivity(catalog))
+                    } else {
+                        catalog.timestamp = timestamp;
+                        calls.push(this.store.identity.save_catalog(catalog));
+                    }
+                }
             });
 
             didObjs.forEach(did => {
