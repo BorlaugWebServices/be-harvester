@@ -1,8 +1,5 @@
 const debug = require("debug")("be-harvester:asset-registry");
 
-import _ from "lodash";
-import {hexToString} from '@polkadot/util';
-
 export default class AssetRegistry {
 
     private store;
@@ -13,67 +10,85 @@ export default class AssetRegistry {
         this.api = api;
     }
 
-    /**
-     * checks transaction with `assetRegistry` module and creates/updates a lease object
-     */
-    async process(transaction, _events, blockNumber, blockHash) {
-        if (transaction.method.section !== 'assetRegistry') {
-            throw new Error("Not an assetRegistry transaction");
-        } else if (transaction.method.method === 'newLease') {
-            debug("new lease");
+    async getRegistryObj(transaction, _events, blockNumber, blockHash) {
+        let event = _events[0];
+        debug("Asset-Registry - getRegistryObj: ", event.event.toHuman())
+        if (event.meta.name.toString() === 'RegistryCreated') {
+            let owner = event.event.data[0].id.toString();
+            let id = event.event.data[1].toString();
 
-            let events = _.filter(_events, (e) => {
-                return transaction.events.includes(e.id) && e.meta.name.toString() === 'LeaseCreated';
-            });
-            if (events.length > 0) {
-                let event = events[0];
-                let leaseid = event.event.data[0];
-                let arg = transaction.method.args[0];
-                let resgistrid = arg.allocations[0].registry_id;
-                let assetid = arg.allocations[0].asset_id;
-                let assetStorage = await this.api.query.assetRegistry.assets(resgistrid, assetid);
-
-                let asset = {
-                    number: hexToString(assetStorage.asset_number.toString()),
-                    share: assetStorage.total_shares,
-                    status: assetStorage.status,
-                    origin: null,
-                    country: null
-                };
-
-                assetStorage.toJSON().properties.forEach(prop => {
-                    if (hexToString(prop.name.toString()) === 'location') {
-                        asset.origin = hexToString(prop.fact.Text.toString());
-                    } else if (hexToString(prop.name.toString()) === 'country') {
-                        asset.country = hexToString(prop.fact.Text.toString());
-                    }
-                });
-
-                return {
-                    id: leaseid,
-                    blockNumber,
-                    blockHash,
-                    extrinsicHash: transaction.hash,
-                    contractNumber: arg.contract_number,
-                    lessor: JSON.stringify(arg.lessor),
-                    lessee: JSON.stringify(arg.lessee),
-                    allocations: JSON.stringify(arg.allocations),
-                    effectiveTs: Number(arg.effective_ts.replace(/,/g, '')),
-                    expiryTs: Number(arg.expiry_ts.replace(/,/g, '')),
-                    asset
-                };
-            } else {
-                throw new Error(`LeaseCreated Event not found`);
-            }
-        } else if (transaction.method.method === 'voidLease') {
-            debug("void lease");
-            let leaseId = transaction.method.args[1];
             return {
-                lease_id: leaseId,
+                id,
+                owner,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
+
+        }else if((['RegistryRenamed', 'RegistryDeleted']).includes(event.meta.name.toString())){
+            let registry_id = event.event.data[1].toString();
+
+            return {
+                registry_id,
                 tx_hash: transaction.hash
             }
-        } else {
-            // throw new Error("Method not recognized");
+        } else{
+            debug("Method not recognized");
+        }
+    }
+
+    async getAssetObj(transaction, _events, blockNumber, blockHash) {
+        let event = _events[0];
+        debug("Asset-Registry - getAssetObj: ", event.event.toHuman())
+        if (event.meta.name.toString() === 'AssetCreated') {
+            let registry_id = event.event.data[1].toString();
+            let id = event.event.data[1].toString();
+
+            return {
+                id,
+                registry_id,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
+
+        }else if((['AssetUpdated', 'AssetDeleted']).includes(event.meta.name.toString())){
+            let asset_id = event.event.data[1].toString();
+
+            return {
+                asset_id,
+                tx_hash: transaction.hash
+            }
+        } else{
+            debug("Method not recognized");
+        }
+    }
+
+    async getLeaseObj(transaction, _events, blockNumber, blockHash) {
+        let event = _events[0];
+        debug("Asset-Registry - getLeaseObj: ", event.event.toHuman())
+        if (event.meta.name.toString() === 'LeaseCreated') {
+            let id = event.event.data[0].toString();
+            let lessor = event.event.data[1].id.toString();
+            let lessee = event.event.data[2].id.toString();
+
+            return {
+                id,
+                lessor,
+                lessee,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
+
+        }else if((['LeaseVoided']).includes(event.meta.name.toString())){
+            let lease_id = event.event.data[0].toString();
+
+            return {
+                lease_id,
+                tx_hash: transaction.hash
+            }
+        } else{
             debug("Method not recognized");
         }
     }

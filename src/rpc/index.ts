@@ -230,6 +230,45 @@ export const server = jayson.server({
             debug(e);
             callback(null, false);
         }
+    },
+    getAsset: async function ({registry_id, asset_id}, callback) {
+        debug('getAsset: %s %s', registry_id, asset_id);
+
+        try {
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let asset = await blockProcessor.api.query.assetRegistry.assets(registry_id, asset_id);
+            asset = asset.toHuman(true);
+            debug("In Asset Registry RPC - Asset", asset);
+            callback(null, asset);
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
+    },
+    getLease: async function ({lessor, lease_id}, callback) {
+        debug('getLease: %s', lease_id);
+
+        try {
+            if (!blockProcessor.api) {
+                blockProcessor.api = await ApiPromise.create({
+                    provider: new WsProvider(ADDAX_ADDRESS),
+                    types: TYPES
+                });
+            }
+
+            let lease = await blockProcessor.api.query.assetRegistry.leaseAgreements(lessor, lease_id);
+            debug("In Asset Registry RPC - Lease", lease);
+            callback(null, lease);
+        } catch (e) {
+            debug(e);
+            callback(null, false);
+        }
     }
 });
 
