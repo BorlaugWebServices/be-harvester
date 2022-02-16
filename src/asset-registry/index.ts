@@ -41,7 +41,7 @@ export default class AssetRegistry {
         let event = _events[0];
         debug("Asset-Registry - getAssetObj: ", event.event.toHuman())
         if (event.meta.name.toString() === 'AssetCreated') {
-            let registry_id = event.event.data[1].toString();
+            let registry_id = event.event.data[0].toString();
             let id = event.event.data[1].toString();
 
             return {
