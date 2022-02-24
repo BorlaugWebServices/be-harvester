@@ -86,7 +86,7 @@ export default class BlockProcessor {
             let map = {};
 
             let txObjs = [], inhObjs = [], evnObjs = [], logObjs = [];
-            let registryObjs = [], assetObjs = [], leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [], groupObjs = [], catalogObjs = [];
+            let assetRegistryObjs = [], assetObjs = [], leaseObjs = [], didObjs = [], auditObjs = [], provenanceObjs = [], proposalObjs = [], groupObjs = [], catalogObjs = [], registryObjs = [], definitionObjs = [];
             // Listen for events
             try {
                 let events = await this.api.query.system.events.at(blockHash);
@@ -141,12 +141,22 @@ export default class BlockProcessor {
                     switch (transaction.method.section) {
                         case 'assetRegistry':
                             let asset_registry_events = _.filter(evnObjs, (e) => {
-                                return (['RegistryCreated', 'RegistryRenamed', 'RegistryDeleted', 'AssetCreated', 'AssetUpdated', 'AssetDeleted', 'LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
+                                return (['RegistryCreated', 'RegistryRenamed', 'RegistryDeleted']).includes(e.meta.name.toString());
+                            });
+                            let asset_events = _.filter(evnObjs, (e) => {
+                                return (['AssetCreated', 'AssetUpdated', 'AssetDeleted']).includes(e.meta.name.toString());
+                            });
+                            let lease_events = _.filter(evnObjs, (e) => {
+                                return (['LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
                             });
                             if(asset_registry_events.length > 0) {
-                                registryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events, blockNumber, blockHash));
-                                assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_registry_events, blockNumber, blockHash));
-                                leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, asset_registry_events, blockNumber, blockHash));
+                                assetRegistryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events, blockNumber, blockHash));
+                            }
+                            if(asset_events.length > 0) {
+                                assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_events, blockNumber, blockHash));
+                            }
+                            if(lease_events.length > 0) {
+                                leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, lease_events, blockNumber, blockHash));
                             }
                             break;
                         case 'identity':
@@ -186,21 +196,46 @@ export default class BlockProcessor {
                                 catalogObjs.push(await this.identity.getCatalogObj(transaction, identity_events_from_groups, blockNumber, blockHash));
                             }
 
-                            let provenance_events_from_groups = _.filter(evnObjs, (e) => {
+
+                            let registry_events_from_group = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['RegistryCreated', 'RegistryUpdated', 'RegistryRemoved']).includes(e.meta.name.toString());
+                            });
+                            let definition_events_from_group = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['DefinitionCreated', 'DefinitionSetActive', 'DefinitionSetInactive', 'DefinitionRemoved', 'DefinitionStepUpdated']).includes(e.meta.name.toString());
+                            });
+                            let process_events_from_group = _.filter(evnObjs, (e) => {
                                 debug(e.meta.name.toString())
                                 return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
                             });
-                            if (provenance_events_from_groups.length > 0) {
-                                provenanceObjs.push(await this.provenance.process(transaction, provenance_events_from_groups, blockNumber, blockHash));
+                            if(process_events_from_group.length>0) {
+                                provenanceObjs.push(await this.provenance.process(transaction, process_events_from_group, blockNumber, blockHash));
+                            }
+                            if(registry_events_from_group.length>0){
+                                registryObjs.push(await this.provenance.getRegistryObj(transaction, registry_events_from_group, blockNumber, blockHash));
+                            }
+                            if(definition_events_from_group.length>0){
+                                registryObjs.push(await this.provenance.getDefinitionObj(transaction, definition_events_from_group, blockNumber, blockHash));
                             }
 
-                            let asset_registry_events_from_groups = _.filter(evnObjs, (e) => {
-                                return (['RegistryCreated', 'RegistryRenamed', 'RegistryDeleted', 'AssetCreated', 'AssetUpdated', 'AssetDeleted', 'LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
+                            let asset_registry_events_from_group = _.filter(evnObjs, (e) => {
+                                return (['RegistryCreated', 'RegistryRenamed', 'RegistryDeleted']).includes(e.meta.name.toString());
                             });
-                            if(asset_registry_events_from_groups.length > 0) {
-                                registryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events_from_groups, blockNumber, blockHash));
-                                assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_registry_events_from_groups, blockNumber, blockHash));
-                                leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, asset_registry_events_from_groups, blockNumber, blockHash));
+                            let asset_events_from_group = _.filter(evnObjs, (e) => {
+                                return (['AssetCreated', 'AssetUpdated', 'AssetDeleted']).includes(e.meta.name.toString());
+                            });
+                            let lease_events_from_group = _.filter(evnObjs, (e) => {
+                                return (['LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
+                            });
+                            if(asset_registry_events_from_group.length > 0) {
+                                assetRegistryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events_from_group, blockNumber, blockHash));
+                            }
+                            if(asset_events_from_group.length > 0) {
+                                assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_events_from_group, blockNumber, blockHash));
+                            }
+                            if(lease_events_from_group.length > 0) {
+                                leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, lease_events_from_group, blockNumber, blockHash));
                             }
 
                             let proposal_events = _.filter(evnObjs, (e) => {
@@ -212,12 +247,26 @@ export default class BlockProcessor {
                             groupObjs.push(await this.group.process(transaction, evnObjs, blockNumber, blockHash));
                             break;
                         case 'provenance':
-                            let provenance_events = _.filter(evnObjs, (e) => {
+                            let registry_events = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['RegistryCreated', 'RegistryUpdated', 'RegistryRemoved']).includes(e.meta.name.toString());
+                            });
+                            let definition_events = _.filter(evnObjs, (e) => {
+                                debug(e.meta.name.toString())
+                                return (['DefinitionCreated', 'DefinitionSetActive', 'DefinitionSetInactive', 'DefinitionRemoved', 'DefinitionStepUpdated']).includes(e.meta.name.toString());
+                            });
+                            let process_events = _.filter(evnObjs, (e) => {
                                 debug(e.meta.name.toString())
                                 return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
                             });
-                            if(provenance_events.length>0) {
-                                provenanceObjs.push(await this.provenance.process(transaction, provenance_events, blockNumber, blockHash));
+                            if(process_events.length>0) {
+                                provenanceObjs.push(await this.provenance.process(transaction, process_events, blockNumber, blockHash));
+                            }
+                            if(registry_events.length>0){
+                                registryObjs.push(await this.provenance.getRegistryObj(transaction, registry_events, blockNumber, blockHash));
+                            }
+                            if(definition_events.length>0){
+                                definitionObjs.push(await this.provenance.getDefinitionObj(transaction, definition_events, blockNumber, blockHash));
                             }
                             break;
                     }
@@ -310,7 +359,7 @@ export default class BlockProcessor {
                 }
             });
 
-            registryObjs.forEach(re => {
+            assetRegistryObjs.forEach(re => {
                 if (re) {
                     if (re.tx_hash) {
                         calls.push(this.store.lease.saveRegistryActivity(re))
@@ -388,6 +437,28 @@ export default class BlockProcessor {
                             sequence_id: prv.id,
                             tx_hash: prv.extrinsicHash
                         }))
+                    }
+                }
+            });
+
+            registryObjs.forEach(registry => {
+                if (registry) {
+                    if (registry.tx_hash) {
+                        calls.push(this.store.provenance.saveRegistryActivity(registry))
+                    } else {
+                        registry.timestamp = timestamp;
+                        calls.push(this.store.provenance.saveRegistry(registry));
+                    }
+                }
+            });
+
+            definitionObjs.forEach(definition => {
+                if (definition) {
+                    if (definition.tx_hash) {
+                        calls.push(this.store.provenance.saveDefinitionActivity(definition))
+                    } else {
+                        definition.timestamp = timestamp;
+                        calls.push(this.store.provenance.saveDefinition(definition));
                     }
                 }
             });

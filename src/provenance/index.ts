@@ -47,4 +47,66 @@ export default class Provenance {
         }
     }
 
+    async getRegistryObj(transaction, _events, blockNumber, blockHash) {
+        let event = _events[0];
+        debug("Provenance - getRegistryObj: ", event.event.toHuman())
+        if (event.meta.name.toString() === 'RegistryCreated') {
+            let creator = event.event.data[0].toString();
+            let creator_group = event.event.data[1].toString();
+            let id = event.event.data[2].toString();
+
+            return {
+                id,
+                creator,
+                creator_group,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
+
+        }else if((['RegistryUpdated', 'RegistryRemoved']).includes(event.meta.name.toString())){
+            let registry_id = event.event.data[2].toString();
+
+            return {
+                registry_id,
+                tx_hash: transaction.hash
+            }
+        } else{
+            debug("Method not recognized");
+        }
+
+    }
+
+    async getDefinitionObj(transaction, _events, blockNumber, blockHash) {
+        let event = _events[0];
+        debug("Provenance - getDefinitionObj: ", event.event.toHuman())
+        if (event.meta.name.toString() === 'DefinitionCreated') {
+            let creator = event.event.data[0].toString();
+            let creator_group = event.event.data[1].toString();
+            let id = event.event.data[3].toString();
+            let registry_id = event.event.data[2].toString();
+
+            return {
+                id,
+                registry_id,
+                creator,
+                creator_group,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
+
+        }else if((['DefinitionSetActive', 'DefinitionSetInactive', 'DefinitionRemoved', 'DefinitionStepUpdated']).includes(event.meta.name.toString())){
+            let definition_id = event.event.data[3].toString();
+
+            return {
+                definition_id,
+                tx_hash: transaction.hash
+            }
+        } else{
+            debug("Method not recognized");
+        }
+
+    }
+
 }
