@@ -6,8 +6,8 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
-        "start": "DEBUG=be-harvester:*,be-datastore:* node dist",
-        "migration": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/up.js",
+        "start": "set DEBUG=be-harvester:*,be-datastore:* & node dist",
+        "migration": "tsc && set DEBUG=be-harvester:*,be-datastore:* & node dist/migration/up.js",
         "rollback": "tsc && DEBUG=be-harvester:*,be-datastore:* node dist/migration/down.js"
     },
     "repository": {

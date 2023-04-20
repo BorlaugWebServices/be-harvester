@@ -16,6 +16,27 @@ export default class Identity {
      * checks transaction with `identity` module and creates/updates a identity object
      */
         async process(transaction, _events, blockNumber, blockHash) {
+        debug("All Events: ", _events);
+        debug("transaction: ", transaction);
+        if( transaction.method.method === 'registerDidForBulk'){
+            let dids = [];
+            _events.forEach(event=> {
+                if (event.meta.name.toString() === 'Registered') {
+                    let subject = event.event.data[1].toString();
+                    let controller = event.event.data[2].toString();
+                    let did = event.event.data[3].id.toString();
+                    dids.push({
+                        did,
+                        blockNumber,
+                        blockHash,
+                        extrinsicHash: transaction.hash,
+                        subject,
+                        controller
+                    })
+                }
+            });
+            return  dids;
+        }
         let event = _events[0];
         debug("Identity - process: ", event.event.toHuman());
         if (event.meta.name.toString() === 'Registered') {
@@ -37,6 +58,7 @@ export default class Identity {
             let events = _.filter(_events, (e) => {
                 return transaction.events.includes(e.id) && e.meta.name.toString() === 'Registered';
             });
+            debug(events)
 
             if (events.length > 0) {
                 let returnEvents = [];
