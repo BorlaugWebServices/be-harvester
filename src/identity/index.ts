@@ -31,6 +31,29 @@ export default class Identity {
                 subject,
                 controller
             }
+        }else if(transaction.method.method === 'registerDidForBulk'){
+            debug('registerDidForBulk');
+
+            let events = _.filter(_events, (e) => {
+                return transaction.events.includes(e.id) && e.meta.name.toString() === 'Registered';
+            });
+
+            if (events.length > 0) {
+                let returnEvents = [];
+                events.forEach(event=> {
+                    returnEvents.push({
+                        did: event.event.data[3].id.toString(),
+                        blockNumber,
+                        blockHash,
+                        extrinsicHash: transaction.hash,
+                        subject: event.event.data[1].toString(),
+                        controller: event.event.data[2].toString()
+                    })
+                });
+                return returnEvents;
+            } else {
+                throw new Error(`registerDidForBulk Event not found`);
+            }
         }else if((['DidPropertiesAdded', 'DidPropertiesRemoved', 'DidControllerUpdated', 'ClaimConsumersAuthorized', 'ClaimConsumersRevoked', 'ClaimIssuersAuthorized', 'ClaimIssuersRevoked', 'ClaimMade']).includes(event.meta.name.toString())){
             let did = event.event.data[2].id.toString();
 
