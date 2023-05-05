@@ -30,6 +30,19 @@ export default class Proposal {
                 blockHash,
                 extrinsicHash: transaction.hash
             }
+        } else if(event.meta.name.toString() === 'Approved'){
+            let proposer = transaction.signer.Id.toString();
+            let group_id = event.event.data[0].toString();
+            let id = event.event.data[1].toString();
+
+            return {
+                id,
+                proposer,
+                group_id,
+                blockNumber,
+                blockHash,
+                extrinsicHash: transaction.hash
+            }
         } else if((['Voted', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(event.meta.name.toString())) {
             let proposal_id = Number(event.event.data[2].toString());
 

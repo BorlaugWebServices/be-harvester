@@ -73,7 +73,6 @@ export default class BlockProcessor {
         try {
             await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
-            //debug("Block : ", this.toJson(_block));
             const blockNumber = _block.block.header.number;
             let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
 
@@ -239,7 +238,7 @@ export default class BlockProcessor {
                             }
 
                             let proposal_events = _.filter(evnObjs, (e) => {
-                                return (['Proposed', 'Voted', 'Approved', 'Disapproved', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(e.meta.name.toString());
+                                return (['Proposed', 'Voted', 'Approved', 'Executed', 'Disapproved', 'ApprovedByVeto', 'DisapprovedByVeto']).includes(e.meta.name.toString());
                             });
                             if (proposal_events.length > 0) {
                                 proposalObjs.push(await this.proposal.process(transaction, proposal_events, blockNumber, blockHash));

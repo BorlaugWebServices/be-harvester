@@ -16,11 +16,13 @@ export default class Group {
      * checks transaction with `group` module and creates/updates a identity object
      */
     async process(transaction, _events, blockNumber, blockHash) {
-        debug("In Group -  process:", transaction.method.method);
+        debug("In Group -  method:", transaction.method.method);
+        debug("In Group -  section:", transaction.method.section);
         if (transaction.method.section !== 'groups') {
             throw new Error("Not an group transaction");
         }
 
+        debug('Events', JSON.stringify(_events))
         if (transaction.method.method === 'createGroup') {
             debug('createGroup');
 
