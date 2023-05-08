@@ -18,6 +18,7 @@ export default class Provenance {
      */
     async process(transaction, _events, blockNumber, blockHash) {
         let event = _events[0];
+        debug('Event Object', JSON.stringify(event));
         if (event.meta.name.toString() === 'ProcessCreated') {
             let registry = Number(event.event.data[2].toString());
             let template = Number(event.event.data[3].toString());
@@ -38,7 +39,7 @@ export default class Provenance {
                 extrinsicHash: transaction.hash
             }
         }else {
-            let sequence_id = Number(event.event.data[4].toString());
+            let sequence_id = Number(event.event.data[3].toString());
 
             return {
                 sequence_id,
