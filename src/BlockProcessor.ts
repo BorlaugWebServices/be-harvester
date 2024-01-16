@@ -1,16 +1,16 @@
 const debug = require("debug")("be-harvester:BlockProcessor");
 const _ = require("lodash");
 
-import {ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MIN, TTL_MAX, TYPES} from "./config";
+import { WsProvider } from '@polkadot/rpc-provider';
 import AssetRegistry from "./asset-registry";
-import Identity from "./identity";
 import Audit from "./audit";
-import Proposal from "./proposals";
+import { ADDAX_ADDRESS, DB_TYPE, DB_URL, REDIS_HOST, REDIS_PORT, Store, TTL_MAX, TTL_MIN, TYPES } from "./config";
 import Group from "./group";
+import Identity from "./identity";
+import Proposal from "./proposals";
 import Provenance from "./provenance";
-import {WsProvider} from '@polkadot/rpc-provider';
 
-const {ApiPromise} = require('@polkadot/api');
+const { ApiPromise } = require('@polkadot/api');
 const NUMBER_PATTERN = RegExp('^[0-9]*$');
 const HASH_PATTERN = RegExp('^0x([A-Fa-f0-9]{64})$');
 
@@ -74,7 +74,7 @@ export default class BlockProcessor {
             await this.init();
             let _block = await this.api.rpc.chain.getBlock(blockHash);
             const blockNumber = _block.block.header.number;
-            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
+            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), { "isSigned": true }).length > 0;
 
             let timestamp = null;
             let _transactions = [];
@@ -92,7 +92,7 @@ export default class BlockProcessor {
 
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
-                    const {event, phase} = events[i];
+                    const { event, phase } = events[i];
                     const id = `${blockNumber}-${i}`;
                     let _event = {
                         id: id,
@@ -126,7 +126,7 @@ export default class BlockProcessor {
                 let ex = _block.block.extrinsics[i];
                 if (ex.isSigned) {
                     let hash = ex.hash.toHex();
-                    let transaction = ex.toHuman({isExtended: true});
+                    let transaction = ex.toHuman({ isExtended: true });
                     transaction["index"] = i;
                     transaction["id"] = `${blockNumber}-${i}`;
                     transaction["hash"] = hash;
@@ -148,13 +148,13 @@ export default class BlockProcessor {
                             let lease_events = _.filter(evnObjs, (e) => {
                                 return (['LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
                             });
-                            if(asset_registry_events.length > 0) {
+                            if (asset_registry_events.length > 0) {
                                 assetRegistryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events, blockNumber, blockHash));
                             }
-                            if(asset_events.length > 0) {
+                            if (asset_events.length > 0) {
                                 assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_events, blockNumber, blockHash));
                             }
-                            if(lease_events.length > 0) {
+                            if (lease_events.length > 0) {
                                 leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, lease_events, blockNumber, blockHash));
                             }
                             break;
@@ -163,7 +163,7 @@ export default class BlockProcessor {
                                 return (['Registered', 'DidPropertiesAdded', 'DidPropertiesRemoved', 'DidControllerUpdated', 'ClaimConsumersAuthorized', 'ClaimConsumersRevoked', 'ClaimIssuersAuthorized', 'ClaimIssuersRevoked', 'ClaimMade',
                                     'ClaimAttested', 'ClaimAttestationRevoked', 'CatalogCreated', 'CatalogRemoved', 'CatalogDidsAdded', 'CatalogDidsRemoved']).includes(e.meta.name.toString());
                             });
-                            if(identity_events.length > 0) {
+                            if (identity_events.length > 0) {
                                 let didObj = await this.identity.process(transaction, identity_events, blockNumber, blockHash);
                                 catalogObjs.push(await this.identity.getCatalogObj(transaction, identity_events, blockNumber, blockHash));
                                 if (Array.isArray(didObj)) {
@@ -208,13 +208,13 @@ export default class BlockProcessor {
                                 debug(e.meta.name.toString())
                                 return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
                             });
-                            if(process_events_from_group.length>0) {
+                            if (process_events_from_group.length > 0) {
                                 provenanceObjs.push(await this.provenance.process(transaction, process_events_from_group, blockNumber, blockHash));
                             }
-                            if(registry_events_from_group.length>0){
+                            if (registry_events_from_group.length > 0) {
                                 registryObjs.push(await this.provenance.getRegistryObj(transaction, registry_events_from_group, blockNumber, blockHash));
                             }
-                            if(definition_events_from_group.length>0){
+                            if (definition_events_from_group.length > 0) {
                                 registryObjs.push(await this.provenance.getDefinitionObj(transaction, definition_events_from_group, blockNumber, blockHash));
                             }
 
@@ -227,13 +227,13 @@ export default class BlockProcessor {
                             let lease_events_from_group = _.filter(evnObjs, (e) => {
                                 return (['LeaseCreated', 'LeaseVoided']).includes(e.meta.name.toString());
                             });
-                            if(asset_registry_events_from_group.length > 0) {
+                            if (asset_registry_events_from_group.length > 0) {
                                 assetRegistryObjs.push(await this.assetRegistry.getRegistryObj(transaction, asset_registry_events_from_group, blockNumber, blockHash));
                             }
-                            if(asset_events_from_group.length > 0) {
+                            if (asset_events_from_group.length > 0) {
                                 assetObjs.push(await this.assetRegistry.getAssetObj(transaction, asset_events_from_group, blockNumber, blockHash));
                             }
-                            if(lease_events_from_group.length > 0) {
+                            if (lease_events_from_group.length > 0) {
                                 leaseObjs.push(await this.assetRegistry.getLeaseObj(transaction, lease_events_from_group, blockNumber, blockHash));
                             }
 
@@ -258,22 +258,22 @@ export default class BlockProcessor {
                                 debug(e.meta.name.toString())
                                 return (['ProcessCreated', 'ProcessUpdated', 'ProcessRemoved', 'ProcessStepUpdated', 'ProcessStepAttested', 'ProcessCompleted']).includes(e.meta.name.toString());
                             });
-                            if(process_events.length>0) {
+                            if (process_events.length > 0) {
                                 provenanceObjs.push(await this.provenance.process(transaction, process_events, blockNumber, blockHash));
                             }
-                            if(registry_events.length>0){
+                            if (registry_events.length > 0) {
                                 registryObjs.push(await this.provenance.getRegistryObj(transaction, registry_events, blockNumber, blockHash));
                             }
-                            if(definition_events.length>0){
+                            if (definition_events.length > 0) {
                                 definitionObjs.push(await this.provenance.getDefinitionObj(transaction, definition_events, blockNumber, blockHash));
                             }
                             break;
                     }
                 } else {
                     const id = `${blockNumber}-${i}`;
-                    let inherent = ex.toHuman({isExtended: true});
+                    let inherent = ex.toHuman({ isExtended: true });
                     if (inherent.method.section === 'timestamp') {
-                        timestamp = inherent.method.args[0].replace(/,/g, '');
+                        timestamp = inherent.method.args.now.replace(/,/g, '');
                         timestamp = Number(timestamp);
                     }
                     inherent["index"] = i;
@@ -289,7 +289,7 @@ export default class BlockProcessor {
             for (let i = 0; i < _block.block.header.digest.logs.length; i++) {
                 const id = `${blockNumber}-${i}`;
                 let log = {};
-                log["log"] = _block.block.header.digest.logs[i].toHuman({isExtended: true});
+                log["log"] = _block.block.header.digest.logs[i].toHuman({ isExtended: true });
                 log["id"] = id;
                 log["index"] = 0;
                 log["blockNumber"] = blockNumber;
@@ -493,7 +493,7 @@ export default class BlockProcessor {
             }
             let _block = await this.api.rpc.chain.getBlock(blockHash);
             const blockNumber = _block.block.header.number;
-            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), {"isSigned": true}).length > 0;
+            let isSignificantBlock = _.filter(_block.block.extrinsics.toHuman(true), { "isSigned": true }).length > 0;
 
             let timestamp = null;
             let _transactions = [];
@@ -512,7 +512,7 @@ export default class BlockProcessor {
 
                 //Save events separately
                 for (let i = 0; i < events.length; i++) {
-                    const {event, phase} = events[i];
+                    const { event, phase } = events[i];
                     const id = `${blockNumber}-${i}`;
                     let _event = {
                         id: id,
@@ -543,7 +543,7 @@ export default class BlockProcessor {
 
             if (ex.isSigned) {
                 let hash = ex.hash.toHex();
-                let transaction = ex.toHuman({isExtended: true});
+                let transaction = ex.toHuman({ isExtended: true });
                 transaction["index"] = 1;
                 debug("Transaction : ", transaction);
                 transaction["id"] = `${blockNumber}-1`;
@@ -577,9 +577,9 @@ export default class BlockProcessor {
                 }
             } else {
                 const id = `${blockNumber}-1`;
-                let inherent = ex.toHuman({isExtended: true});
+                let inherent = ex.toHuman({ isExtended: true });
                 if (inherent.method.section === 'timestamp') {
-                    timestamp = inherent.method.args[0].replace(/,/g, '');
+                    timestamp = inherent.method.args.now.replace(/,/g, '');
                     timestamp = Number(timestamp);
                 }
                 inherent["index"] = 1;
