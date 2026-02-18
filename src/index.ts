@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-var-requires */
-const debug = require("debug")("be-harvester:Main");
+import Debug from "debug";
+import {BlockProcessor} from "#blockProcessor";
+import {server} from "#rpc";
+import {RPC_PORT} from "#config";
 
-import BlockProcessor from "./BlockProcessor";
-import {server} from "./rpc";
-import {RPC_PORT} from "./config";
+const debug = Debug("be-harvester:Main");
 
 debug("Starting harvester");
 

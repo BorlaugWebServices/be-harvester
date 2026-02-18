@@ -1,0 +1,204 @@
+{
+  "Address": "MultiAddress",
+  "LookupSource": "MultiAddress",
+  "Balance": "u128",
+  "Timestamp": "u64",
+  "Moment": "u64",
+  "CatalogId": "u32",
+  "RegistryId": "u32",
+  "AssetId": "u32",
+  "LeaseId": "u32",
+  "ClaimId": "u32",
+  "DefinitionId": "u32",
+  "DefinitionStepIndex": "u32",
+  "ProcessId": "u32",
+  "Did": {
+    "id": "[u8; 32]"
+  },
+  "ClaimIndex": "u64",
+  "Claim": {
+    "description": "Vec<u8>",
+    "statements": "Vec<Statement>",
+    "created_by": "AccountId",
+    "attestation": "Option<Attestation>",
+    "threshold": "MemberCount"
+  },
+  "Statement": {
+    "name": "Vec<u8>",
+    "fact": "Fact",
+    "for_issuer": "bool"
+  },
+  "Fact": {
+    "_enum": {
+      "Bool": "bool",
+      "Text": "Bytes",
+      "Attachment": "(H256, Bytes)",
+      "Location": "(u32, u32)",
+      "Did": "Did",
+      "Float": "[u8; 8]",
+      "U8": "u8",
+      "U16": "u16",
+      "U32": "u32",
+      "U128": "u128",
+      "Date": "(u16, u8, u8)"
+    }
+  },
+  "DidDocument": {
+    "subject": "AccountId"
+  },
+  "DidProperty": {
+    "name": "Bytes",
+    "fact": "Fact"
+  },
+  "Attestation": {
+    "attested_by": "AccountId",
+    "issued": "Moment",
+    "valid_until": "Moment"
+  },
+  "Asset": {
+    "properties": "Vec<AssetProperty>",
+    "name": "Vec<u8>",
+    "asset_number": "Option<Vec<u8>>",
+    "status": "AssetStatus",
+    "serial_number": "Option<Vec<u8>>",
+    "total_shares": "u64",
+    "residual_value": "Option<Balance>",
+    "purchase_value": "Option<Balance>",
+    "acquired_date": "Option<Moment>"
+  },
+  "AssetProperty": {
+    "name": "Vec<u8>",
+    "fact": "Fact"
+  },
+  "LeaseAgreement": {
+    "proposal_id": "Option<ProposalId>",
+    "contract_number": "Vec<u8>",
+    "lessor": "Did",
+    "lessee": "Did",
+    "effective_ts": "Moment",
+    "expiry_ts": "Moment",
+    "allocations": "Vec<AssetAllocation>"
+  },
+  "AssetAllocation": {
+    "registry_id": "RegistryId",
+    "asset_id": "AssetId",
+    "allocated_shares": "u64"
+  },
+  "AssetStatus": {
+    "_enum": [
+      "Draft",
+      "Active",
+      "InActive"
+    ]
+  },
+  "ClaimConsumer": {
+    "consumer": "AccountId",
+    "expiration": "Moment"
+  },
+  "ClaimIssuer": {
+    "issuer": "AccountId",
+    "expiration": "Moment"
+  },
+  "DidPropertyName": "Vec<u8>",
+  "ShortName": "Vec<u8>",
+  "AuditId": "u32",
+  "AuditStatus": {
+    "_enum": [
+      "Requested",
+      "Accepted",
+      "Rejected",
+      "InProgress",
+      "Completed"
+    ]
+  },
+  "AuditorId": "AccountId",
+  "Audit": {
+    "proposal_id": "ProposalId",
+    "status": "AuditStatus",
+    "audit_creator": "AccountId",
+    "auditing_org": "AccountId",
+    "auditors": "Option<AccountId>"
+  },
+  "ControlPointId": "u32",
+  "ObservationId": "u32",
+  "Observation": {
+    "proposal_id": "ProposalId",
+    "compliance": "Option<Compliance>",
+    "procedural_note_hash": "Option<[u8; 32]>"
+  },
+  "Compliance": {
+    "_enum": [
+      "NotApplicable",
+      "Compliant",
+      "NonCompliant"
+    ]
+  },
+  "EvidenceId": "u32",
+  "Evidence": {
+    "proposal_id": "ProposalId",
+    "name": "Vec<u8>",
+    "content_type": "Vec<u8>",
+    "url": "Option<Vec<u8>>",
+    "hash": "Vec<u8>"
+  },
+  "Process": {
+    "name": "Vec<u8>",
+    "status": "ProcessStatus"
+  },
+  "Definition": {
+    "name": "Vec<u8>",
+    "status": "DefinitionStatus"
+  },
+  "DefinitionStatus": {
+    "_enum": [
+      "Active",
+      "Inactive"
+    ]
+  },
+  "DefinitionStep": {
+    "name": "Vec<u8>",
+    "attestor": "AccountId",
+    "required": "bool",
+    "threshold": "MemberCount"
+  },
+  "ProcessStatus": {
+    "_enum": [
+      "InProgress",
+      "Completed"
+    ]
+  },
+  "ProcessStep": {
+    "proposal_id": "Option<ProposalId>",
+    "attested": "Moment",
+    "attributes": "Vec<Attribute>"
+  },
+  "Attribute": {
+    "name": "Vec<u8>",
+    "fact": "Fact"
+  },
+  "GroupId": "u32",
+  "ProposalId": "u32",
+  "MemberCount": "u32",
+  "Group": {
+    "name": "Vec<u8>",
+    "total_vote_weight": "MemberCount",
+    "threshold": "MemberCount",
+    "anonymous_account": "AccountId",
+    "parent": "Option<GroupId>"
+  },
+  "Votes": {
+    "threshold": "MemberCount",
+    "total_vote_weight": "MemberCount",
+    "ayes": "Vec<GroupMember<AccountId, MemberCount>>",
+    "nays": "Vec<GroupMember<AccountId, MemberCount>>",
+    "veto": "Option<bool>"
+  },
+  "Registry": {
+    "name": "Vec<u8>"
+  },
+  "ModuleIndex": "u8",
+  "ExtrinsicIndex": "u8",
+  "AccountIds": "Vec<AccountId>",
+  "ClaimConsumers": "Vec<ClaimConsumer<AccountId, Moment>>",
+  "ClaimIssuers": "Vec<ClaimIssuer<AccountId, Moment>>"
+}

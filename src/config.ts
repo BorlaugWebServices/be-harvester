@@ -1,9 +1,6 @@
-const dotenv = require('dotenv');
-const DataStore = require('be-datastore')
+import dotenv from 'dotenv';
 
-let path = `${__dirname}/../../.env`;
-
-dotenv.config({path: path});
+dotenv.config();
 
 const REDIS_SERVER = process.env.REDIS_SERVER.split(":");
 
@@ -15,7 +12,7 @@ export const TTL_MIN = process.env.TTL_MIN || 3600;
 export const TTL_MAX = process.env.TTL_MAX || 31556952;
 export const DB_TYPE = process.env.DATABASE_TYPE;
 export const DB_URL = `${process.env.DATABASE_SERVER}/${process.env.DATABASE}`;
-export const TYPES = JSON.parse(process.env.TYPES);
-export const Store = DataStore;
+
+
 
 
