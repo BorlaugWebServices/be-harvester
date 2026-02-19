@@ -158,7 +158,7 @@ export class BlockProcessor {
             phase: phase.toJSON(),
             meta: {
               name: event.meta.name.toString(),
-              args: event.meta.fields.map(field => field.typeName.unwrapOr(field.type.toString()).toString()),
+              args: event.meta.fields.map(field => field.typeName.unwrapOr(field.type.toString()).toString()?.replace(/T::/g, '')),
               documentation: event.meta.docs.map(doc => doc.toString())
             },
             pallet: eventHuman.section as PalletNames,
