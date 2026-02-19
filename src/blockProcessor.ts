@@ -11,8 +11,7 @@ import Debug from "debug";
 import AuditClass from "#auditClass";
 import ProposalClass from "#proposalClass";
 import GroupClass from "#groupClass";
-import {DataStore} from "be-datastore";
-import {BlockExpanded, FullBlock, FullInherent, FullTransaction} from "be-datastore/dist/lib/types";
+import {BlockExpanded, DataStore, FullBlock, FullInherent, FullTransaction} from "be-datastore";
 import {
   AssetActivityRow,
   AssetRegistryActivityRow,

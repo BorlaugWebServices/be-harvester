@@ -31,7 +31,7 @@
   "dependencies": {
     "@polkadot/api": "^15.0.1",
     "@types/debug": "^4.1.12",
-    "be-datastore": "github:BorlaugWebServices/be-datastore#sandbox",
+    "be-datastore": "github:BorlaugWebServices/be-datastore#809bdb",
     "debug": "^4.4.0",
     "dotenv": "^16.4.5",
     "jayson": "^4.1.2",
