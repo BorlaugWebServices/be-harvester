@@ -189,9 +189,6 @@ export class BlockProcessor {
           eventObjs.push(eventObj);
         });
 
-        debug(`events: ${eventObjs.length}`);
-
-
         const assetRegistryEvents = eventObjs.filter(ev => ev.pallet === 'assetRegistry');
         if (assetRegistryEvents.length > 0) {
           debug(`assetRegistryEvents: ${assetRegistryEvents.length}`);
@@ -408,12 +405,8 @@ export class BlockProcessor {
               events: map[`${blockNumber}-${i}`],
               timestamp
             };
-
-            debug("BlockProcessor - transaction.method.section: ", transaction.method);
-
             transactionHashes.push(hash);
             txObjs.push(transaction);
-
 
           } else {
             const id = `${blockNumber}-${i}`;
