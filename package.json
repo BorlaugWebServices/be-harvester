@@ -4,6 +4,7 @@
   "description": "Listen to blocks and transactions and writes to be-datastore",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
@@ -20,13 +21,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.3",
     "@polkadot/typegen": "^15.0.1",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "cross-env": "^10.1.0",
-    "eslint": "^9.0.0",
+    "eslint": "^9.39.3",
+    "globals": "^17.3.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@polkadot/api": "^15.0.1",
