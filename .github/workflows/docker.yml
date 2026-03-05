@@ -14,8 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Prepare image name
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -28,4 +30,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/be-harvester:latest
+          tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
