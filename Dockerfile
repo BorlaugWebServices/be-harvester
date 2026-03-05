@@ -1,4 +1,4 @@
-FROM node:16.14.2
+FROM node:20.20.0
 
 COPY . /home/be-harvester
 
@@ -10,3 +10,4 @@ RUN npm run build
 EXPOSE 4000
 
 CMD [ "npm","start" ]
+
