@@ -1,29 +1,31 @@
 name: Build and Push Docker Image
 
 on:
-push:
-branches:
-- aztec-maya
+  push:
+    branches:
+      - aztec-maya
 
 permissions:
-contents: read
-packages: write
+  contents: read
+  packages: write
 
 jobs:
-docker:
-runs-on: ubuntu-latest
+  docker:
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Login to GitHub Container Registry
-    run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  - name: Build Docker Image
-    run: docker build -t ghcr.io/${{ github.repository_owner }}/be-harvester:latest .
-
-  - name: Push Docker Image
-    run: docker push ghcr.io/${{ github.repository_owner }}/be-harvester:latest
-```
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/be-harvester:latest
